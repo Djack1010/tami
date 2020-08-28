@@ -20,12 +20,11 @@ GIST DESCRIPTOR
 git clone https://github.com/tuttieee/lear-gist-python
 ```
 
-```
 ## Authors & References
 
 * **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010) giacomo.iadarola(at)iit.cnr.it
 
-Cite this works (bibtex format):
+Cite this work (bibtex format):
 ```
 WORK IN PROGRESS...
 ```
