@@ -1,7 +1,7 @@
 # Tami
 
 TAMI (Tool for Analyzing Malware represented as Images) implements the approach presented in some publication by Giacomo Iadarola, Ph.D. student at IIT-CNR and University of Pisa.
-If you are using this repository, please cite us and refer to the linked works at the end of this README file.
+If you are using this repository, please cite our works (see links at the end of this README file).
 
 ## Getting Started
 
