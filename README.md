@@ -24,7 +24,7 @@ git clone https://github.com/tuttieee/lear-gist-python
 
 * **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010) giacomo.iadarola(at)iit.cnr.it
 
-Cite this work (bibtex format):
+If you are using this repository, please cite our work by refering to our publications (bibtex format):
 ```
 WORK IN PROGRESS...
 ```
