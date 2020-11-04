@@ -118,8 +118,8 @@ def main(arguments):
                 model_class.build_tuning,
                 objective='val_accuracy',
                 max_trials=50,
-                directory = 'tuning',
-                project_name = 'wt_bayesian'
+                directory='tuning',
+                project_name='wt_bayesian'
             )
         elif arguments.tuning == "random":
             tuner = kt.tuners.RandomSearch(
@@ -289,8 +289,11 @@ def _check_args(arguments):
     if not os.path.isdir(main_path + arguments.dataset):
         print('Cannot find dataset in {}, exiting...'.format(arguments.dataset))
         exit()
-    if "_PREPROCESSED" not in main_path + arguments.dataset:
-        print("Dataset '{}' is not marked as '_PREPROCESSED'...".format(arguments.dataset))
+    # Check Dataset struct: should be in folder tree training/[train|val] e test
+    if not os.path.isdir(main_path + arguments.dataset + "/test") or \
+            not os.path.isdir(main_path + arguments.dataset + "/training/val") or \
+            not os.path.isdir(main_path + arguments.dataset + "/training/train"):
+        print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(arguments.dataset))
         exit()
     if arguments.tuning is not None:
         if arguments.tuning != "random" and arguments.tuning != "bayesian" and arguments.tuning != "hyperband":
