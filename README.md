@@ -9,10 +9,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Dependencies
 
-The project needs Python3 to be run, and it has been tested only in Linux Environment (Ubuntu 18.04).
-It also needs Tensorflow 2.1 and all the dependencies for training on the GPU.
+##### Ubuntu 18.04
 
+The project needs Python3 to be run, and it has been tested in Linux Environment (Ubuntu 18.04).
+It also needs Tensorflow 2.1, the dependencies for training on the GPU and installing all the requirmentes in `requirements.txt`.
 You also need to set the variable 'main_path' in utils/config.py to the full path to the repository folder on your local machine.
+
+##### Ubuntu 20.04
+
+It was tested also on Ubuntu 20.04 with Tensorflow 2.3. The new requirements are stored in `requirements_ubuntu20.txt`.
+You can also run the script `install.sh` to setup all the necessary dependencies (excludin the GPU ones).
 
 #### External tools required for vectorization:
 GIST DESCRIPTOR
