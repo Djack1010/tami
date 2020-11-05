@@ -46,7 +46,7 @@ def main(arguments):
     print_log('Start Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
 
     # Initialize callbacks for Tensorboard
-    log_fit = "tensorboard/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_fit = "tensorboard_logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback_fit = tf.keras.callbacks.TensorBoard(log_dir=log_fit, histogram_freq=1)
 
     train_results = model.fit(x=train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
