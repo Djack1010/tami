@@ -7,12 +7,12 @@ import tensorflow.keras.callbacks as callbacks
 from tensorflow.keras.utils import to_categorical
 import tensorflow as tf
 import kerastuner as kt
-from models.myModel import MyModel as BASIC_EXP
-from models.VGG16 import VGG16_19
-from models.ResNet152V2 import ResNet
-from models.InceptionResNetV2 import InceptionResNet
-from models.NASNetLarge import NASNet
-from models.DenseNet201 import DenseNet
+from models_impl.myModel import MyModel as BASIC_EXP
+from models_impl.VGG16 import VGG16_19
+from models_impl.ResNet152V2 import ResNet
+from models_impl.InceptionResNetV2 import InceptionResNet
+from models_impl.NASNetLarge import NASNet
+from models_impl.DenseNet201 import DenseNet
 from distutils.dir_util import copy_tree
 from utils.preprocessing_data import *
 from utils.training_utils import *
@@ -58,9 +58,9 @@ def main(arguments):
               .format(nclasses, arguments.image_size, arguments.image_size, CLASS_NAMES, size_train, size_val, size_test))
 
     # delete previous logs
-    shutil.rmtree(main_path + "logs/exp", ignore_errors=True)
+    shutil.rmtree(main_path + "tensorboard_logs/exp", ignore_errors=True)
     # initialize logs for Tensorboard
-    log_dir = main_path + "logs/exp/{}".format(timeExec)
+    log_dir = main_path + "tensorboard_logs/exp/{}".format(timeExec)
 
     # --------------  TRAINING and VALIDATION part  --------------------
 
@@ -226,7 +226,6 @@ def main(arguments):
                   print_on_screen=True)
         copy_tree(log_dir, main_path + "results/backup_tensorboard/{}".format(timeExec))
 
-
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
 
@@ -300,7 +299,6 @@ def _check_args(arguments):
             print("INVALID option '' for tuning, allowed option are [random, bayesian, hyperband]', exiting..."
                   .format(arguments.tuning))
             exit()
-
 
 
 def _model_selection(arguments, nclasses):

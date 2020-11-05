@@ -17,7 +17,7 @@ function validate_url(){
 # Check if virtualenv installed
 if ! command -v virtualenv &> /dev/null
 then
-    echo "'virtualenv' not found, proceed with installation? [Y/n]"
+    echo "'virtualenv' not found, proceed with installation? [y/N]"
     # shellcheck disable=SC2162
     read -n 2 RES
     if [ "$RES" == "y" ]; then
@@ -25,17 +25,16 @@ then
         sudo apt install python3-virtualenv
     else
         echo ""
-        echo "OK, exiting..."
-        exit
+        echo "OK, proceeding without virtualenv..."
     fi
+else
+  echo "Create the virtual environment 'venv' with python3 in "
+  virtualenv "${SCRIPTPATH}/venv" -p /usr/bin/python3
+
+  # Activate the virtual environment
+  # shellcheck disable=SC1090
+  source "${SCRIPTPATH}"/venv/bin/activate
 fi
-
-echo "Create the virtual environment 'venv' with python3 in "
-virtualenv "${SCRIPTPATH}/venv" -p /usr/bin/python3
-
-# Activate the virtual environment
-# shellcheck disable=SC1090
-source "${SCRIPTPATH}"/venv/bin/activate
 
 echo "Install External Dependencies"
 echo "Installing FFTW for GIST descriptor..."
@@ -82,7 +81,7 @@ else
 
 fi
 
-# "${SCRIPTPATH}"/venv/bin/pip install -r "${SCRIPTPATH}"/requirements.txt
+# "${SCRIPTPATH}"/venv/bin/pip install -r "${SCRIPTPATH}"/requirements_ubuntu20.txt
 
 echo "Setting main_path to tami in utils.config"
 # tells git to ignore changes in config.py

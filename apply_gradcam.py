@@ -6,7 +6,7 @@
 # import the necessary packages
 import math
 
-from models.gradcam import GradCAM
+from models_impl.gradcam import GradCAM
 from utils.config import *
 from tensorflow.keras.applications import imagenet_utils
 from tensorflow.keras.models import load_model
