@@ -1,5 +1,6 @@
 from tensorflow.keras import layers
 from tensorflow.keras import models
+from tensorflow.keras.metrics import Precision, Recall, AUC
 
 
 class BASIC:
@@ -28,6 +29,7 @@ class BASIC:
         model.add(layers.Dropout(0.5))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+        model.compile(loss='categorical_crossentropy', optimizer='adam',
+                      metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model

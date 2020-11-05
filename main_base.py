@@ -9,6 +9,7 @@ from models_base.basic import BASIC
 from models_base.VGG16 import VGG16_19
 from utils.config import *
 from utils.generic_utils import print_log
+from utils.analyzing_data import multiclass_analysis
 
 
 def main(arguments):
@@ -40,8 +41,8 @@ def main(arguments):
     lab_train_ds = train_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
     lab_val_ds = val_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-    train_ds = prepare_for_training(lab_train_ds)
-    val_ds = prepare_for_training(lab_val_ds)
+    train_ds = prepare_for_training(lab_train_ds, batch_size=BATCH_SIZE)
+    val_ds = prepare_for_training(lab_val_ds, batch_size=BATCH_SIZE)
 
     print_log('Start Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
 
@@ -65,8 +66,8 @@ def main(arguments):
     lab_final_train_ds = final_training_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
     lab_test_ds = test_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-    fin_train_ds = prepare_for_training(lab_final_train_ds)
-    test_ds = prepare_for_training(lab_test_ds)
+    fin_train_ds = prepare_for_training(lab_final_train_ds, batch_size=BATCH_SIZE)
+    test_ds = prepare_for_training(lab_test_ds, batch_size=1)
 
     # Train the model over the entire total_training set and then test
     print_log('Start Final Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
@@ -77,7 +78,15 @@ def main(arguments):
     # Test the trained model over the test set
     print_log('Start Test', print_on_screen=True)
     results = model.evaluate(test_ds)
-    print_log("\ttest loss: {} \n\ttest accuracy: {}".format(results[0], results[1]))
+    print_log("\ttest loss: {} \n\ttest accuracy: {}".format(results[0], results[1]), print_on_screen=True)
+    print_log("\tPrec: {} \n\tRecall: {}".format(results[2], results[3]), print_on_screen=True)
+    # F-measure calculated as (2 * Prec * Recall)/(Prec + Recall)
+    print_log("\tF-Measure: {} \n\tAUC: {}".format((2*results[2]*results[3])/(results[2]+results[3]), results[4]),
+              print_on_screen=True)
+
+    cm, results_classes, to_print = multiclass_analysis(model, test_ds, nclasses)
+    print_log("Results per classes", print_on_screen=True)
+    print_log(to_print, print_on_screen=True)
 
     del fin_train_ds, test_ds
 
@@ -190,7 +199,7 @@ def process_path(file_path):
     return img, label
 
 
-def prepare_for_training(ds, cache=True, shuffle_buffer_size=1000, loop=False):
+def prepare_for_training(ds, batch_size, cache=True, shuffle_buffer_size=1000, loop=False):
     # IF it is a small dataset, only load it once and keep it in memory.
     # OTHERWISE use `.cache(filename)` to cache preprocessing work for datasets that don't fit in memory.
     if cache:
@@ -205,7 +214,7 @@ def prepare_for_training(ds, cache=True, shuffle_buffer_size=1000, loop=False):
     if loop:
         ds = ds.repeat()
 
-    ds = ds.batch(BATCH_SIZE)
+    ds = ds.batch(batch_size)
 
     # `prefetch` lets the dataset fetch batches in the background while the model
     # is training.
