@@ -6,6 +6,9 @@ import itertools
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import pandas as pd
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+
 
 
 def plot_training_result(dict_res, save_on_file=None):
@@ -61,6 +64,7 @@ def cm_4_exp(model_class, test_ds, fw_cm):
                                          training=False).numpy(), axis=1)[0])
     log_confusion_matrix(test_pred, y_test_int, fw_cm[0], fw_cm[1])
 
+
 def plot_confusion_matrix(cm, class_names, title='Confusion matrix'):
     """
     This function prints and plots the confusion matrix.
@@ -107,3 +111,72 @@ def log_confusion_matrix(pred, y, file_writer_cm, class_names, epoch=0):
     # Log the confusion matrix as an image summary.
     with file_writer_cm.as_default():
         tf.summary.image("Confusion Matrix Normalized", cm_image_norm, step=epoch)
+
+
+def multiclass_analysis(model, test_ds, nclasses):
+    test_list = []
+    labels_list = []
+    preds_list = []
+    results_classes = []
+    to_print = ""
+
+    # Convert test_ds to python list and split in labels and test set
+    # NB. The labels are converted to the argmax()
+    for s in test_ds:
+        labels_list.append(np.argmax(s[1].numpy()[0].tolist()))
+        test_list.append(s[0].numpy()[0].tolist())
+
+    # Get predictions for data in test set and convert predictions to python list
+    preds = model.predict(test_list)
+    for p in preds:
+        preds_list.append(np.argmax(p.tolist()))
+
+    # Calculate Confusion Matrix
+    cm = tf.math.confusion_matrix(labels_list, preds_list).numpy()
+    to_print += np.array2string(cm) + "  \n"
+
+    # Compute ROC curve and ROC area for each class
+    # Adopting One vs All approach: per each class x, the label x becomes 1 and all the other labels become 0
+    for i in range(nclasses):
+        i_label_list = []
+        i_pred_list = []
+        # Converting labels to 1 if i or 0 otherwise
+        for k in range(len(labels_list)):
+            i_label_list.append(1 if labels_list[k] == i else 0)
+            i_pred_list.append(1 if preds_list[k] == i else 0)
+
+        # Calculating roc_curve and auc starting from false positive rate and true positive rate
+        fpr, tpr, thresholds = roc_curve(i_label_list, i_pred_list)
+        roc_auc = auc(fpr, tpr)
+        results_classes.append({'AUC': roc_auc, 'ROC': [fpr, tpr, thresholds]})
+
+    '''
+    Examples of CM for multi-label classification | and index
+    NB. Taking into account class at (12) as True Positive
+    TN TN FP TN | 00 01 02 03
+    FN FN TP FN | 10 11 12 12
+    TN TN FP TN | 20 21 22 23
+    TN TN FP TN | 30 31 32 33
+    '''
+    for ind in range(nclasses):
+        TP = TN = FP = FN = 0
+        for i in range(nclasses):
+            for j in range(nclasses):
+                if i == j and i == ind:
+                    TP = cm[i][j]
+                elif ind == j:
+                    FP += cm[i][j]
+                elif ind == i:
+                    FN += cm[i][j]
+                else:
+                    TN += cm[i][j]
+        accuracy = (TP+TN)/(TP+TN+FP+FN)
+        precision = TP/(TP+FP)
+        recall = TP/(TP+FN)
+        f1 = (2*precision*recall)/(precision+recall)
+        results_classes[ind].update({'TP': TP, 'TN': TN, 'FP': FP, 'FN': FN,
+                                   'acc': accuracy, 'prec': precision, 'rec': recall, 'fm': f1})
+        to_print += "class {} -> TP: {}, TN: {}, FP: {}, FN: {}\n\tacc: {}, prec: {}, rec: {}, fm: {}, auc: {}\n"\
+            .format(ind, TP, TN, FP, FN, accuracy, precision, recall, f1, results_classes[ind]['AUC'])
+
+    return cm, results_classes, to_print
