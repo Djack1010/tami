@@ -10,7 +10,7 @@ echo "Cleaning /temp folder"
 
 if [ "$1" == "--complete" ]; then
 	rm -f preprocessed_dataset/*.data
-	rm -f results/*.results
+	rm -f results/exec_logs/*.results
 	echo "Cleaning /preprocesed_dataset and /results folders"
 fi
 
