@@ -1,10 +1,10 @@
 import kerastuner as kt
 from tensorflow.keras.layers import Dense, Flatten, MaxPooling2D, Conv2D, Dropout, Input
 from tensorflow.keras import Model, losses, optimizers, metrics
-from utils.analyzing_data import log_confusion_matrix
+from old_tool.utils_backup.analyzing_data import log_confusion_matrix
 import tensorflow as tf
 import numpy as np
-from utils.generic_utils import *
+from old_tool.utils_backup.generic_utils import *
 from datetime import datetime, timedelta
 
 

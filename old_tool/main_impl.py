@@ -1,23 +1,15 @@
 import argparse
 import datetime
-import shutil
-import pathlib
-from tensorflow.keras.models import load_model
 import tensorflow.keras.callbacks as callbacks
-from tensorflow.keras.utils import to_categorical
-import tensorflow as tf
 import kerastuner as kt
-from models_impl.myModel import MyModel as BASIC_EXP
-from models_impl.VGG16 import VGG16_19
-from models_impl.ResNet152V2 import ResNet
-from models_impl.InceptionResNetV2 import InceptionResNet
-from models_impl.NASNetLarge import NASNet
-from models_impl.DenseNet201 import DenseNet
-from distutils.dir_util import copy_tree
-from utils.preprocessing_data import *
-from utils.training_utils import *
-from utils.generic_utils import *
-from utils.config import *
+from old_tool.models_impl.myModel import MyModel as BASIC_EXP
+from old_tool.models_impl.VGG16 import VGG16_19
+from old_tool.models_impl.ResNet152V2 import ResNet
+# from old_tool.utils_backup.dir_util import copy_tree
+from old_tool.utils_backup.preprocessing_data import *
+from old_tool.utils_backup.training_utils import *
+from old_tool.utils_backup.generic_utils import *
+from old_tool.utils_backup.config import *
 
 
 def main(arguments):
@@ -222,9 +214,9 @@ def main(arguments):
                   .format(arguments.output_model, arguments.model), print_on_screen=True)
 
         # Copy the tensorboard information folder into a backup folder (it keeps graph and cm)
-        print_log("AND tensorboard graphs/images stored to 'results/backup_tensorboard/{}".format(timeExec),
-                  print_on_screen=True)
-        copy_tree(log_dir, main_path + "results/backup_tensorboard/{}".format(timeExec))
+        # print_log("AND tensorboard graphs/images stored to 'results/backup_tensorboard/{}".format(timeExec),
+        #           print_on_screen=True)
+        # copy_tree(log_dir, main_path + "results/backup_tensorboard/{}".format(timeExec))
 
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 

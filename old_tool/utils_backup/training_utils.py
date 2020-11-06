@@ -1,7 +1,7 @@
 import numpy as np
 from random import shuffle
-from utils.analyzing_data import plot_training_result, log_confusion_matrix, cm_4_exp
-from utils.generic_utils import *
+from old_tool.utils_backup.analyzing_data import plot_training_result, log_confusion_matrix, cm_4_exp
+from old_tool.utils_backup.generic_utils import *
 import tensorflow as tf
 
 

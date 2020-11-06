@@ -1,10 +1,10 @@
 from tensorflow.keras.layers import Dense, Flatten, Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications import DenseNet201
-from utils.training_utils import training_EXP, test_EXP
+from tensorflow.keras.applications import NASNetLarge
+from old_tool.utils_backup.training_utils import training_EXP, test_EXP
 
 
-class DenseNet:
+class NASNet:
     def __init__(self, num_classes, img_size, channels, weights='imagenet', name="InceptionResNet152V2",
                  include_top=False):
         self.name = name
@@ -26,11 +26,11 @@ class DenseNet:
                 print("IF include_top=True, input_shape MUST be (224,224,3), exiting...")
                 exit()
             else:
-                base_model = DenseNet201(weights=self.weights, include_top=True, classes=self.num_classes)
+                base_model = NASNetLarge(weights=self.weights, include_top=True, classes=self.num_classes)
                 output = base_model.output
         else:
             inputs = Input(shape=(self.input_width_height, self.input_width_height, self.channels))
-            base_model = DenseNet201(weights=self.weights, include_top=False, input_tensor=inputs)
+            base_model = NASNetLarge(weights=self.weights, include_top=False, input_tensor=inputs)
             flatten = Flatten(name='my_flatten')
             output_layer = Dense(self.num_classes, activation='softmax', name='my_predictions')
             output = output_layer(flatten(base_model.output))
