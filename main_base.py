@@ -10,9 +10,10 @@ from models_base.VGG16 import VGG16_19
 from utils.config import *
 from utils.generic_utils import print_log
 from utils.analyzing_data import multiclass_analysis
+from utils.preprocessing_data import get_info_dataset
 
 
-def main(arguments):
+def main(arguments, class_info):
 
     print_log("STARTING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
     print("LOADING AND PRE-PROCESSING DATA")
@@ -26,13 +27,34 @@ def main(arguments):
     test_paths_ds = tf.data.Dataset.list_files(dataset_base + "/test/*/*")
 
     # STATS
-    size_train = sum([len(files) for r, d, files in os.walk(dataset_base + "/training/train")])
-    size_val = sum([len(files) for r, d, files in os.walk(dataset_base + "/training/val")])
-    size_test = sum([len(files) for r, d, files in os.walk(dataset_base + "/test")])
-    nclasses = len(CLASS_NAMES)
+    size_train = class_info['train_size']
+    size_val = class_info['val_size']
+    size_test = class_info['test_size']
+    class_names = class_info['class_names']
+    nclasses = class_info['n_classes']
 
     # SELECTING MODELS
     model = _model_selection(arguments, nclasses)
+
+    # Print information on log
+    # EXECUTION Info
+    print_log("INFO EXECUTION:"
+              "\nmodel = {}\ndataset = {}"
+              "\noutput_model = {}\nepochs = {}\nbatch_size = {}\ncaching = {}"
+              "\n----------------"
+              .format(arguments.model, arguments.dataset,
+                      arguments.output_model, arguments.epochs, arguments.batch_size, arguments.caching))
+
+    # DATA Info
+    print_log("INFO DATA:"
+              "\num_classes = {}\nclass_names= {}\nnsize_img= {}x{}\nSize train-val-test= {}-{}-{}"
+              .format(nclasses, class_names, arguments.image_size, arguments.channels, size_train, size_val, size_test))
+    for ds_class in class_names:
+        print_log("{} : {}-{}-{} -> {}".format(ds_class, class_info['info'][ds_class]['TRAIN'],
+                                               class_info['info'][ds_class]['VAL'],
+                                               class_info['info'][ds_class]['TEST'],
+                                               class_info['info'][ds_class]['TOT']))
+    print_log("----------------")
 
     # --------------  TRAINING and VALIDATION part  --------------------
 
@@ -41,8 +63,8 @@ def main(arguments):
     lab_train_ds = train_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
     lab_val_ds = val_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-    train_ds = prepare_for_training(lab_train_ds, batch_size=BATCH_SIZE)
-    val_ds = prepare_for_training(lab_val_ds, batch_size=BATCH_SIZE)
+    # Caching dataset in memory for big dataset (IF arguments.caching is set)
+    train_ds, val_ds = prepare_ds(arguments.caching, lab_train_ds, lab_val_ds, "train", "val", arguments.batch_size)
 
     print_log('Start Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
 
@@ -66,14 +88,18 @@ def main(arguments):
     lab_final_train_ds = final_training_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
     lab_test_ds = test_paths_ds.map(process_path, num_parallel_calls=AUTOTUNE)
 
-    fin_train_ds = prepare_for_training(lab_final_train_ds, batch_size=BATCH_SIZE)
-    test_ds = prepare_for_training(lab_test_ds, batch_size=1)
+    # NB The batch_val_test is set to 1 to make easier the calculation of the performance results
+    fin_train_ds, test_ds = prepare_ds(arguments.caching, lab_final_train_ds, lab_test_ds, "fin_tr", "test",
+                                       arguments.batch_size, batch_val_test=1)
 
     # Train the model over the entire total_training set and then test
     print_log('Start Final Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
+    start_training = time.perf_counter()
     final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs)
+    end_training = time.perf_counter()
     print_log("\ttraining loss: {} \n\ttraining acc:{}" .format(final_train_results.history['loss'],
-                                                            final_train_results.history['acc']))
+                                                                final_train_results.history['acc']))
+    print_log("FINAL TRAINING TIME: {} ".format(str(datetime.timedelta(seconds=end_training - start_training))))
 
     # Test the trained model over the test set
     print_log('Start Test', print_on_screen=True)
@@ -84,7 +110,8 @@ def main(arguments):
     print_log("\tF-Measure: {} \n\tAUC: {}".format((2*results[2]*results[3])/(results[2]+results[3]), results[4]),
               print_on_screen=True)
 
-    cm, results_classes, to_print = multiclass_analysis(model, test_ds, nclasses)
+    cm, results_classes, to_print = multiclass_analysis(model, test_ds, class_names,
+                                                        save_fig=main_path + "results/figures/CM_{}".format(timeExec))
     print_log("Results per classes", print_on_screen=True)
     print_log(to_print, print_on_screen=True)
 
@@ -123,6 +150,9 @@ def parse_args():
     group.add_argument('--exclude_top', dest='include_top', action='store_false',
                        help='Exclute the fully-connected layer at the top pf the network (default INCLUDE)')
     group.set_defaults(include_top=True)
+    group.add_argument('--caching', dest='caching', action='store_true',
+                       help='Caching dataset on file and loading per batches (IF db too big for memory)')
+    group.set_defaults(caching=False)
     arguments = parser.parse_args()
     return arguments
 
@@ -200,6 +230,11 @@ def process_path(file_path):
 
 
 def prepare_for_training(ds, batch_size, cache=True, shuffle_buffer_size=1000, loop=False):
+    """
+    cache:  If isinstance(cache, str), then represents the name of a
+            directory on the filesystem to use for caching elements in this Dataset.
+            Otherwise, the dataset will be cached in memory.
+    """
     # IF it is a small dataset, only load it once and keep it in memory.
     # OTHERWISE use `.cache(filename)` to cache preprocessing work for datasets that don't fit in memory.
     if cache:
@@ -222,10 +257,39 @@ def prepare_for_training(ds, batch_size, cache=True, shuffle_buffer_size=1000, l
 
     return ds
 
+
+def prepare_ds(caching, train, val_test, cache_train, cache_val_test, batch_train, batch_val_test=None):
+    if batch_val_test is None:
+        batch_val_test = batch_train
+    if caching:
+        # delete previous cache files and store for this execution
+        caching_file_base = main_path + "temp/"
+        for f in os.listdir(caching_file_base):
+            if "{}.tfcache".format(cache_train) in f or "{}.tfcache".format(cache_val_test) in f:
+                os.remove(caching_file_base + f)
+        train_ds = prepare_for_training(train, batch_size=batch_train,
+                                        cache=caching_file_base + "{}.tfcache".format(cache_train))
+        test_val_ds = prepare_for_training(val_test, batch_size=batch_val_test,
+                                           cache=caching_file_base + "{}.tfcache".format(cache_val_test))
+
+    else:
+        train_ds = prepare_for_training(train, batch_size=batch_train)
+        test_val_ds = prepare_for_training(val_test, batch_size=batch_val_test)
+
+    return train_ds, test_val_ds
+
+
 if __name__ == '__main__':
     start = time.perf_counter()
     args = parse_args()
     _check_args(args)
+
+    # Check info of the dataset
+    # STRUCT of class_info = {'class_names': np.array(string), 'n_classes': int,
+    # "train_size": int, "val_size": int, "test_size": int, 'info': dict}
+    # for name in class_info['class_names'] the info dict contains = {'TRAIN': int, 'VAL': int, 'TEST': int, 'TOT': int}
+    class_info = get_info_dataset(args.dataset)
+
     # GLOBAL SETTINGS FOR THE EXECUTIONS
     # Reduce verbosity for Tensorflow Warnings and set dtype for layers
     # tf.keras.backend.set_floatx('float64')
@@ -233,7 +297,7 @@ if __name__ == '__main__':
     AUTOTUNE = tf.data.experimental.AUTOTUNE
     CHANNELS = args.channels
     IMG_DIM = args.image_size
-    CLASS_NAMES = np.array([item.name for item in pathlib.Path(main_path + args.dataset + "/training/train").glob('*')])
+    CLASS_NAMES = class_info['class_names']
     BATCH_SIZE = args.batch_size
 
     # Check if tensorflow can access the GPU
@@ -243,7 +307,7 @@ if __name__ == '__main__':
     else:
         print('Found GPU at: {}'.format(device_name))
 
-    main(args)
+    main(args, class_info)
     end = time.perf_counter()
     print()
     print_log("EX. TIME: {} ".format(str(datetime.timedelta(seconds=end-start))), print_on_screen=True)

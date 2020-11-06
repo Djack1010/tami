@@ -2,13 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import io
+import os
+import pickle
 import itertools
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import pandas as pd
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
-
 
 
 def plot_training_result(dict_res, save_on_file=None):
@@ -68,7 +69,6 @@ def cm_4_exp(model_class, test_ds, fw_cm):
 def plot_confusion_matrix(cm, class_names, title='Confusion matrix'):
     """
     This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
     """
     cm = cm.round(decimals=2)
 
@@ -105,7 +105,7 @@ def plot_to_image(figure):
 
 def log_confusion_matrix(pred, y, file_writer_cm, class_names, epoch=0):
     # Calculate the confusion matrix and log the confusion matrix as an image summary.
-    figure_norm = plot_confusion_matrix(confusion_matrix(pred, y, normalize='true'), class_names=class_names,
+    figure_norm = plot_confusion_matrix(confusion_matrix(y, pred, normalize='true'), class_names=class_names,
                                         title="Confusion Matrix Normalized")
     cm_image_norm = plot_to_image(figure_norm)
     # Log the confusion matrix as an image summary.
@@ -113,12 +113,13 @@ def log_confusion_matrix(pred, y, file_writer_cm, class_names, epoch=0):
         tf.summary.image("Confusion Matrix Normalized", cm_image_norm, step=epoch)
 
 
-def multiclass_analysis(model, test_ds, nclasses):
+def multiclass_analysis(model, test_ds, class_names, save_fig=None):
     test_list = []
     labels_list = []
     preds_list = []
     results_classes = []
     to_print = ""
+    nclasses = len(class_names)
 
     # Convert test_ds to python list and split in labels and test set
     # NB. The labels are converted to the argmax()
@@ -132,8 +133,18 @@ def multiclass_analysis(model, test_ds, nclasses):
         preds_list.append(np.argmax(p.tolist()))
 
     # Calculate Confusion Matrix
-    cm = tf.math.confusion_matrix(labels_list, preds_list).numpy()
+    cm = tf.math.confusion_matrix(labels_list, preds_list, num_classes=nclasses).numpy()
     to_print += np.array2string(cm) + "  \n"
+
+    # Print the confusion matrixes (normalized and not)
+    plot_confusion_matrix(confusion_matrix(labels_list, preds_list, normalize='true'), class_names=class_names,
+                          title="Confusion Matrix Normalized")
+    # plt.save() save the latest plot created
+    if save_fig is not None:
+        plt.savefig(save_fig + "_NORMALIZED.png")
+    plot_confusion_matrix(confusion_matrix(labels_list, preds_list), class_names=class_names, title="Confusion Matrix")
+    if save_fig is not None:
+        plt.savefig(save_fig + ".png")
 
     # Compute ROC curve and ROC area for each class
     # Adopting One vs All approach: per each class x, the label x becomes 1 and all the other labels become 0
@@ -177,6 +188,6 @@ def multiclass_analysis(model, test_ds, nclasses):
         results_classes[ind].update({'TP': TP, 'TN': TN, 'FP': FP, 'FN': FN,
                                    'acc': accuracy, 'prec': precision, 'rec': recall, 'fm': f1})
         to_print += "class {} -> TP: {}, TN: {}, FP: {}, FN: {}\n\tacc: {}, prec: {}, rec: {}, fm: {}, auc: {}\n"\
-            .format(ind, TP, TN, FP, FN, accuracy, precision, recall, f1, results_classes[ind]['AUC'])
+            .format(class_names[ind], TP, TN, FP, FN, accuracy, precision, recall, f1, results_classes[ind]['AUC'])
 
     return cm, results_classes, to_print

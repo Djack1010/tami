@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 import pickle
+import pathlib
 from tqdm import tqdm
 import shutil
 from sklearn.model_selection import train_test_split
@@ -222,3 +223,39 @@ def load_from_temp_file(temp_file):
         stored_data = pickle.load(filehandle)
 
     return stored_data['data'], stored_data['labels']
+
+
+def get_info_dataset(dataset_path):
+
+    storing_data_path = dataset_path + "/info.txt"
+
+    if os.path.isfile(storing_data_path):
+        with open(storing_data_path, 'rb') as filehandle:
+            class_info = pickle.load(filehandle)
+
+    else:
+        class_names = np.array([item.name for item in pathlib.Path(dataset_path + "/training/train").glob('*')])
+        nclasses = len(class_names)
+        class_info = {"class_names": class_names, "n_classes": nclasses}
+
+        # GENERAL STATS
+        size_train = sum([len(files) for r, d, files in os.walk(dataset_path + "/training/train")])
+        size_val = sum([len(files) for r, d, files in os.walk(dataset_path + "/training/val")])
+        size_test = sum([len(files) for r, d, files in os.walk(dataset_path + "/test")])
+
+        class_info.update({"train_size": size_train, "val_size": size_val, "test_size": size_test, 'info': {}})
+
+        for name in class_names:
+            size_trainf = sum([len(files) for r, d, files in os.walk(dataset_path + "/training/train/{}".format(name))])
+            size_valf = sum([len(files) for r, d, files in os.walk(dataset_path + "/training/val/{}".format(name))])
+            size_testf = sum([len(files) for r, d, files in os.walk(dataset_path + "/test/{}".format(name))])
+            class_info['info']["{}".format(name)] = {}
+            class_info['info']["{}".format(name)]['TRAIN'] = size_trainf
+            class_info['info']["{}".format(name)]['VAL'] = size_valf
+            class_info['info']["{}".format(name)]['TEST'] = size_testf
+            class_info['info']["{}".format(name)]['TOT'] = size_testf + size_valf + size_trainf
+
+        with open(storing_data_path, 'wb') as filehandle:
+            pickle.dump(class_info, filehandle)
+
+    return class_info
