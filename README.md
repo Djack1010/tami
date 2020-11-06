@@ -12,17 +12,18 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Dependencies
 
-##### Ubuntu 18.04
+##### Ubuntu 18.04 -> Deprecated
+
+**Update**: All the new experiments were conducted on Ubuntu 18.04. We do not know it these old settings are still working.
 
 The project needs Python3 to be run, and it has been tested in Linux Environment (Ubuntu 18.04).
 It also needs Tensorflow 2.1, the dependencies for training on the GPU and installing all the requirements in 
-`requirements/requirements_ubuntu18.txt`. You also need to set the variable `main_path` in utils/config.py to the full 
+`old/requirements_ubuntu18.txt`. You also need to set the variable `main_path` in utils/config.py to the full 
 path to the repository folder on your local machine.
 
 ##### Ubuntu 20.04
 
-It was tested also on Ubuntu 20.04 with Tensorflow 2.3. The new requirements are stored in 
-`requirements/requirements_ubuntu20.txt`. You can also run the script `install.sh` to set up all the necessary 
+The new requirements are stored in `requirements.txt`. You can also run the script `install.sh` to set up all the necessary 
 dependencies (excluding the GPU ones).
 
 #### External tools required for vectorization:
