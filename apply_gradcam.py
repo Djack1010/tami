@@ -6,7 +6,7 @@
 # import the necessary packages
 import math
 
-from old_tool.models_impl.gradcam import GradCAM
+from models_code.gradcam import GradCAM
 from utils.config import *
 from tensorflow.keras.models import load_model
 import tensorflow as tf

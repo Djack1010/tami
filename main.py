@@ -3,9 +3,9 @@ import datetime
 import re
 import os
 import tensorflow as tf
-from models_base.basic import BASIC
-from models_base.nedo import NEDO
-from models_base.VGG16 import VGG16_19
+from models_code.basic import BASIC
+from models_code.nedo import NEDO
+from models_code.VGG16 import VGG16_19
 from utils.config import *
 from utils.generic_utils import print_log
 import utils.handle_modes as modes
@@ -14,20 +14,21 @@ from utils.preprocessing_data import get_info_dataset
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Deep Learning Image Malware Classification')
+        description='Deep Learning Image-based Malware Classification')
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str,
                        help='BASIC, NEDO or VGG16')
     group.add_argument('-d', '--dataset', required=True, type=str,
-                       help='the dataset to be used')
+                       help='the dataset path, must have the folder structure: training/train, training/val and test,'
+                            'in each of this folders, one folder per class (see dataset_test)')
     # OPTIONAL Arguments
     group.add_argument('-o', '--output_model', required=False, type=str, default=None,
-                       help='Name of model to output and store')
+                       help='Name of model to store')
     group.add_argument('-l', '--load_model', required=False, type=str, default=None,
                        help='Name of model to load')
     group.add_argument('-t', '--tuning', required=False, type=str, default=None,
-                       help='Run Keras Tuner for choosing hyperparameters [hyperband, random, bayesian]')
+                       help='Run Keras Tuner for tuning hyperparameters, chose: [hyperband, random, bayesian]')
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
     group.add_argument('-b', '--batch_size', required=False, type=int, default=32)
@@ -36,12 +37,14 @@ def parse_args():
                             '(reshape will be applied)')
     group.add_argument('-w', '--weights', required=False, type=str, default=None,
                        help="If you do not want random initialization of the model weights "
-                            "(ex. 'imagenet' or path to weights to be loaded)")
+                            "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
     group.add_argument('--mode', required=False, type=str, default='training',
-                       help="Choose which mode run between 'training' (default), 'test'")
+                       help="Choose which mode run between 'training' (default), 'test'. The 'training' mode will run"
+                            "a phase of training+validation on the training and validation set, while the 'test' mode"
+                            "will run a phase of training+test on the training+validation and test set.")
     # FLAGS
     group.add_argument('--exclude_top', dest='include_top', action='store_false',
-                       help='Exclute the fully-connected layer at the top pf the network (default INCLUDE)')
+                       help='Exclude the fully-connected layer at the top of the network (default INCLUDE)')
     group.set_defaults(include_top=True)
     group.add_argument('--caching', dest='caching', action='store_true',
                        help='Caching dataset on file and loading per batches (IF db too big for memory)')
