@@ -2,8 +2,6 @@ import argparse
 import datetime
 import re
 import os
-import numpy as np
-import pathlib
 import tensorflow as tf
 from models_base.basic import BASIC
 from models_base.nedo import NEDO
