@@ -11,6 +11,7 @@ import shutil
 from sklearn.model_selection import train_test_split
 from utils.config import *
 from utils.training_utils import balanced_split_train_test
+from tensorflow import data as tf_data
 
 
 def extract_data_paths(arguments):
@@ -226,22 +227,38 @@ def load_from_temp_file(temp_file):
 
 
 def get_info_dataset(dataset_path):
-
+    # TODO: Implemnents some checks to verify edits to the dataset from last pickle.dump(data)
     storing_data_path = dataset_path + "/info.txt"
 
     if os.path.isfile(storing_data_path):
         with open(storing_data_path, 'rb') as filehandle:
-            class_info = pickle.load(filehandle)
+            data = pickle.load(filehandle)
+            class_info = data['class_info']
+            ds_info = data['ds_info']
 
     else:
+
+        # Create dataset filepaths
+        train_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/training/train")
+                       for file in f if ".png" in file or ".jpg" in file]
+        val_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/training/val")
+                     for file in f if ".png" in file or ".jpg" in file]
+        final_training_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/training")
+                                for file in f if ".png" in file or ".jpg" in file]
+        test_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/test")
+                      for file in f if ".png" in file or ".jpg" in file]
+
+        ds_info = {'train_paths': train_paths, 'val_paths': val_paths, 'test_paths': test_paths,
+                   'final_training_paths': final_training_paths}
+
         class_names = np.array([item.name for item in pathlib.Path(dataset_path + "/training/train").glob('*')])
         nclasses = len(class_names)
         class_info = {"class_names": class_names, "n_classes": nclasses}
 
         # GENERAL STATS
-        size_train = sum([len(files) for r, d, files in os.walk(dataset_path + "/training/train")])
-        size_val = sum([len(files) for r, d, files in os.walk(dataset_path + "/training/val")])
-        size_test = sum([len(files) for r, d, files in os.walk(dataset_path + "/test")])
+        size_train = len(train_paths)
+        size_val = len(val_paths)
+        size_test = len(test_paths)
 
         class_info.update({"train_size": size_train, "val_size": size_val, "test_size": size_test, 'info': {}})
 
@@ -256,6 +273,8 @@ def get_info_dataset(dataset_path):
             class_info['info']["{}".format(name)]['TOT'] = size_testf + size_valf + size_trainf
 
         with open(storing_data_path, 'wb') as filehandle:
-            pickle.dump(class_info, filehandle)
+            data = {'ds_info': ds_info, 'class_info': class_info}
+            pickle.dump(data, filehandle)
 
-    return class_info
+    return class_info, ds_info
+
