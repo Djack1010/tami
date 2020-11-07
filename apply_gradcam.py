@@ -20,10 +20,11 @@ import cv2
 
 
 def _model_selection(arguments):
+    # TODO: change and update this function with the one utils.handle_modes.load_model(arguments)
     print("LOADING MODEL")
-    model = load_model(main_path + 'model_saved/{}_m{}'.format(arguments.load_model, arguments.model))
+    model = load_model(main_path + 'models_saved/{}_m{}'.format(arguments.load_model, arguments.model))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
-    with open(main_path + 'model_saved/{}_m{}.info'.format(arguments.load_model, arguments.model), 'rb') \
+    with open(main_path + 'models_saved/{}_m{}.info'.format(arguments.load_model, arguments.model), 'rb') \
             as filehandle:
         stored_data = pickle.load(filehandle)
         CN = stored_data["CLASS_NAMES"]

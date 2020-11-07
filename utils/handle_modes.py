@@ -226,7 +226,7 @@ def test(arguments, model, class_info, ds_info):
 
 
 def save_model(arguments, model):
-    model_path = config.main_path + 'model_saved/{}_m{}_i{}x{}' \
+    model_path = config.main_path + 'models_saved/{}_m{}_i{}x{}' \
         .format(arguments.output_model, arguments.model, arguments.image_size, arguments.channels)
 
     # save model and architecture to single file
@@ -238,14 +238,14 @@ def save_model(arguments, model):
             store_data = {"CLASS_NAMES": config.CLASS_NAMES, "CHANNELS": config.CHANNELS, "IMG_DIM": config.IMG_DIM}
             pickle.dump(store_data, filehandle)
 
-        print_log("Model, Weights and Info saved to 'model_saved/{}_m{}_i{}x{}[.info]'"
+        print_log("Model, Weights and Info saved to 'models_saved/{}_m{}_i{}x{}[.info]'"
                   .format(arguments.output_model, arguments.model, arguments.image_size, arguments.channels),
                   print_on_screen=True)
 
 
 def load_model(arguments):
     print("LOADING MODEL")
-    model_path = config.main_path + 'model_saved/{}_m{}_i{}x{}'\
+    model_path = config.main_path + 'models_saved/{}_m{}_i{}x{}'\
         .format(arguments.load_model, arguments.model, arguments.image_size, arguments.channels)
     if not os.path.isdir(model_path):
         print("Model not found in {}, exiting...".format(model_path))
@@ -271,12 +271,12 @@ def load_model(arguments):
 
 def save_weights(arguments, model):
     print("SAVING WEIGHTS")
-    model.save_weights(config.main_path + 'model_saved/{}_m{}_weights'.format(arguments.output_model, arguments.model))
+    model.save_weights(config.main_path + 'models_saved/{}_m{}_weights'.format(arguments.output_model, arguments.model))
 
 
 def load_weights(arguments, model):
     print("LOADING WEIGHTS")
-    model.load_weights(config.main_path + 'model_saved/{}_m{}_weights'.format(arguments.load_model, arguments.model))
+    model.load_weights(config.main_path + 'models_saved/{}_m{}_weights'.format(arguments.load_model, arguments.model))
     return model
 
 
