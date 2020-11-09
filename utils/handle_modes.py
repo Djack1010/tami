@@ -98,8 +98,6 @@ def initialization(arguments, class_info, ds_info):
 
     print("LOADING AND PRE-PROCESSING DATA")
 
-    dataset_base = config.main_path + arguments.dataset
-
     # STATS
     size_train, size_val, size_test = class_info['train_size'], class_info['val_size'], class_info['test_size']
     class_names, nclasses = class_info['class_names'], class_info['n_classes']
@@ -147,7 +145,7 @@ def train_val(arguments, model, ds_info):
     print_log('Start Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
 
     # Initialize callbacks for Tensorboard
-    log_fit = "tensorboard_logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_fit = config.main_path + "results/tensorboard/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback_fit = tf.keras.callbacks.TensorBoard(log_dir=log_fit, histogram_freq=1)
 
     train_results = model.fit(x=train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,

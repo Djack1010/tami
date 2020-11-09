@@ -68,10 +68,10 @@ Arguments:
   --caching             Caching dataset on file and loading per batches (IF db too big for memory)
 ```
 
-Logs, figure and performance results are stored in `results`, `tuning` and `tensorboard_logs` folder.
+Logs, figure and performance results are stored in `results` and `tuning` folders.
 Tensorboard can be used to print graph of training and validation trend.
 ```
-tensorboard --logdir tensorboard_logs/fit/
+tensorboard --logdir results/tensorboard/fit/
 ```
 
 ### Deprecated 

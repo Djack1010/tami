@@ -11,8 +11,8 @@ echo "Cleaning /temp folder"
 if [ "$1" == "--logs" ]; then
 	rm -f results/exec_logs/*.results
 	rm -f results/figures/*.png
-	rm -rf tensorboard_logs/fit/
-	echo "Cleaning /results/[exec_logs|figures] and tensorboard_logs/fit folders"
+	rm -rf results/tensorboard/fit/
+	echo "Cleaning /results/{exec_logs|figures|tensorboard} folders"
 elif [ "$1" == "--models" ]; then
   rm -rf models_saved/*
   echo "Cleaning /models_saved folder"
