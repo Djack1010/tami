@@ -4,9 +4,12 @@ import pickle
 import pathlib
 
 
-def get_info_dataset(dataset_path):
-    # TODO: Implemnents some checks to verify edits to the dataset from last pickle.dump(data)
+def get_info_dataset(dataset_path, update=False):
+    # TODO: Implements some checks to verify edits to the dataset from last pickle.dump(data)
     storing_data_path = dataset_path + "/info.txt"
+
+    if update and os.path.exists(dataset_path + "/info.txt"):
+        os.remove(dataset_path + "/info.txt")
 
     if os.path.isfile(storing_data_path):
         with open(storing_data_path, 'rb') as filehandle:

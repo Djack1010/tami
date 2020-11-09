@@ -6,7 +6,8 @@ import tensorflow as tf
 from models_code.basic import BASIC
 from models_code.nedo import NEDO
 from models_code.VGG16 import VGG16_19
-from utils.config import *
+from utils import config
+import time
 from utils.generic_utils import print_log
 import utils.handle_modes as modes
 from utils.preprocessing_data import get_info_dataset
@@ -18,7 +19,7 @@ def parse_args():
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str,
-                       help='BASIC, NEDO or VGG16')
+                       help='DATA, BASIC, NEDO or VGG16')
     group.add_argument('-d', '--dataset', required=True, type=str,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
                             'in each of this folders, one folder per class (see dataset_test)')
@@ -54,8 +55,9 @@ def parse_args():
 
 
 def _check_args(arguments):
-    if arguments.model != "BASIC" and arguments.model != "NEDO" and arguments.model != "VGG16":
-        print('Invalid model choice, exiting...')
+    if arguments.model != "DATA" and arguments.model != "BASIC" and arguments.model != "NEDO" \
+            and arguments.model != "VGG16":
+        print("Invalid model choice ('{}'), exiting...".format(arguments.model))
         exit()
     if re.match(r"^\d{2,4}x([13])$", arguments.image_size):
         img_size = arguments.image_size.split("x")[0]
@@ -65,13 +67,13 @@ def _check_args(arguments):
     else:
         print('Invalid image_size, exiting...')
         exit()
-    if not os.path.isdir(main_path + arguments.dataset):
-        print('Cannot find dataset in {}, exiting...'.format(arguments.dataset))
+    if not os.path.isdir(config.main_path + arguments.dataset):
+        print('Cannot find dataset in {}, exiting...'.format(config.main_path + arguments.dataset))
         exit()
     # Check Dataset struct: should be in folder tree training/[train|val] e test
-    if not os.path.isdir(main_path + arguments.dataset + "/test") or \
-            not os.path.isdir(main_path + arguments.dataset + "/training/val") or \
-            not os.path.isdir(main_path + arguments.dataset + "/training/train"):
+    if not os.path.isdir(config.main_path + arguments.dataset + "/test") or \
+            not os.path.isdir(config.main_path + arguments.dataset + "/training/val") or \
+            not os.path.isdir(config.main_path + arguments.dataset + "/training/train"):
         print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
             arguments.dataset))
         exit()
@@ -115,7 +117,13 @@ if __name__ == '__main__':
     # STRUCT of class_info = {'class_names': np.array(string), 'n_classes': int,
     # "train_size": int, "val_size": int, "test_size": int, 'info': dict}
     # for name in class_info['class_names'] the info dict contains = {'TRAIN': int, 'VAL': int, 'TEST': int, 'TOT': int}
-    class_info, ds_info = get_info_dataset(args.dataset)
+    class_info, ds_info = get_info_dataset(config.main_path + args.dataset,
+                                           update=True if args.model == "DATA" else False)
+
+    # if model set to 'DATA', only updates database info and exit
+    if args.model == "DATA":
+        print("Dataset info updated, exiting...")
+        exit()
 
     # GLOBAL SETTINGS FOR THE EXECUTIONS
     # Reduce verbosity for Tensorflow Warnings and set dtype for layers
