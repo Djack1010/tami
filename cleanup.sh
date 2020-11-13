@@ -8,10 +8,17 @@ rm -f temp/*.data
 
 echo "Cleaning /temp folder"
 
-if [ "$1" == "--complete" ]; then
-	rm -f preprocessed_dataset/*.data
-	rm -f results/*.results
-	echo "Cleaning /preprocesed_dataset and /results folders"
+if [ "$1" == "--logs" ]; then
+	rm -f results/exec_logs/*.results
+	rm -f results/figures/*.png
+	rm -rf results/tensorboard/fit/
+	echo "Cleaning /results/{exec_logs|figures|tensorboard} folders"
+elif [ "$1" == "--models" ]; then
+  rm -rf models_saved/*
+  echo "Cleaning /models_saved folder"
+elif [ "$1" == "--tuning" ]; then
+  rm -rf tuning/*
+  echo "Cleaning /tuning folder"
 fi
 
-echo "USAGE: $0 [--complete]"
+echo "USAGE: $0 --[logs|models|tuning]"
