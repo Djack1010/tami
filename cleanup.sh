@@ -1,13 +1,5 @@
 #!/bin/bash
 
-rm -f temp/train.*
-rm -f temp/val.*
-rm -f temp/test.*
-rm -f temp/fin_tr.*
-rm -f temp/*.data
-
-echo "Cleaning /temp folder"
-
 if [ "$1" == "--logs" ]; then
 	rm -f results/exec_logs/*.results
 	rm -f results/figures/*.png
@@ -19,6 +11,18 @@ elif [ "$1" == "--models" ]; then
 elif [ "$1" == "--tuning" ]; then
   rm -rf tuning/*
   echo "Cleaning /tuning folder"
+elif [ "$1" == "--complete" ]; then
+  ./cleanup.sh --logs --ignore
+  ./cleanup.sh --models --ignore
+  ./cleanup.sh --tuning --ignore
 fi
 
-echo "USAGE: $0 --[logs|models|tuning]"
+if [ "$2" != "--ignore" ]; then
+  rm -f temp/train.*
+  rm -f temp/val.*
+  rm -f temp/test.*
+  rm -f temp/fin_tr.*
+  rm -f temp/*.data
+  echo "Cleaning /temp folder"
+  echo "USAGE: $0 --[logs|models|tuning|complete]"
+fi
