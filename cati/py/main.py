@@ -1,84 +1,116 @@
+import argparse
 import os
+import subprocess
+
 from utils.opcode import *
 from utils.config import *
 from utils.image import *
 from utils.class_colored import *
+from utils.tools import *
+
+number_of_apk = {}
 
 
-def loop_per_decompiled(decompiled_files):
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='APK converter in OPCode and than in PNG gray scaled image')
+    group = parser.add_argument_group('Arguments')
+    # OPTIONAL Arguments
+    group.add_argument('-s', '--storage', required=False, type=str, default='preprocess',
+                       help='Storage the results in a dataset structure '
+                            '[ preprocess the data (p) or normal saving (n) ]')
+    group.add_argument('-p', '--percentual', required=False, type=int, default=80,
+                       help='Percentual of division between training and test, insert a number between 1 to 100'
+                            'to define how large training should be')
+    # As default the division training/validation is 80/20
+    arguments = parser.parse_args()
+    return arguments
+
+
+def _check_args(arguments):
+    if arguments.storage != "preprocess" and arguments.storage != "normal" \
+            or not arguments.storage.startswith("p") and not arguments.storage.startswith("n"):
+        print('Invalid storage choice, exiting...')
+        exit()
+        if arguments.training_test < 0 or arguments.training_test > 100:
+            print('Invalid suddivision, exiting...')
+            exit()
+
+
+def loop_per_decompiled():
     """Elaborates the classes in the decompiled directories,
     saving data of the class itself and converting it in an image"""
-    for file in decompiled_files:
-        smali_path = \
-            f"{DECOMPILED}/{file}/smali/com/example/{os.listdir(f'{DECOMPILED}/{file}/smali/com/example')[0]}"
-        general_content = ""
-        class_legend = ""
-        smali_k = {}
-        end = 0
-        for smali in os.listdir(smali_path):
-            if not smali.startswith("R$") and not smali.startswith("BuildConfig"):
-                class_name = smali.split(".")
-                fr = open(f"{smali_path}/{smali}", "r")
-                encoded_content = converter.encoder(fr.read())
-                fr.close()
+    for family in os.listdir(DECOMPILED):
+        if os.path.isdir(f'{DECOMPILED}/{family}'):
+            number_of_apk[family] = 0
+            os.chdir(RESULTS)
+            if not os.path.isdir(f"{RESULTS}/{family}"):
+                create_folder(family)
+            for file in os.listdir(f'{DECOMPILED}/{family}'):
+                number_of_apk[family] += 1
 
-                # calculating number of lines and characters of the encoded class
-                num_line = encoded_content.count('\n')
-                num_character = len(encoded_content)
+                smali_paths = []  # Initialise the list
+                smali_folder = f"{DECOMPILED}/{family}/{file}"
+                for subdirectory in os.listdir(smali_folder):
+                    if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
+                        find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
 
-                # saving number of character and coordinates of begin and finish of the class
-                smali_k[class_name[0]] = num_character
-                start = end + 1
-                end = start + num_line
-                class_legend += f"{class_name[0]} starts at the {start}th line and ends at {end}th line\n"
-                general_content += encoded_content
+                general_content = ""
+                class_legend = ""
+                smali_k = {}
+                cease = 0
+                for smali in smali_paths:
+                    class_name = smali.replace(f'{DECOMPILED}/family', "")
 
-        # creating the image on the whole converted text
-        img, pix_map, dim, num_character, lines = img_generator(general_content)
-        char_reader(general_content, pix_map, dim)
+                    fr = open(smali, "r")
+                    encoded_content = converter.encoder(fr.read())
+                    fr.close()
 
-        img.save(f"{file}/{file}.png")
+                    # calculating number of lines and characters of the encoded class
+                    num_line = encoded_content.count('\n')
+                    num_character = len(encoded_content)
 
-        img, pix_map, dim = rgb_image_generator(len(general_content))
-        pixel_generator(smali_k, pix_map, dim)
+                    # saving number of character and coordinates of begin and finish of the class
+                    smali_k[class_name] = num_character
+                    begin = cease + 1
+                    cease = begin + num_line
+                    class_legend += f"{class_name} starts at the {begin}th line and ends at {cease}th line\n"
+                    general_content += encoded_content
 
-        img.save(f"{file}/{file}Legend.png")
+                # creating the image on the whole converted text
+                img, pix_map, dim, num_character, lines = img_generator(general_content)
+                char_reader(general_content, pix_map, dim)
 
-        # saving the .txt containing all the compressed classes
-        fw = open(f"{file}/{file}.txt", "w", encoding='utf-8')
-        fw.write(general_content)
-        fw.close()
+                img.save(f"{family}/{file}.png")
 
-        # saving the legend of the classes
-        fw = open(f"{file}/TXT Legend.txt", "w")
-        fw.write(class_legend)
-        fw.close()
+                img, pix_map, dim = rgb_image_generator(len(general_content))
+                pixel_generator(smali_k, pix_map, dim)
+                img.save(f"{family}/{file} Legend.png")
 
-        # saving the legend of the classes in the image
-        fw = open(f"{file}/PNG Legend.txt", "w", encoding='utf-8')
-        fw.write(legend_of_image(dim, smali_k))
-        fw.close()
+                # saving the .txt containing all the compressed classes
+                save_txt(f"{family}/{file}.txt", general_content, True)
 
+                # saving the legend of the classes
+                save_txt(f"{family}/{file} Legend.txt", class_legend, False)
 
-def checking_file():
-    """Check if in the folder there are decompiled apk directories, if so load them in a list to be processed"""
-    for file in os.listdir(DECOMPILED):
-        # Seleziono solo le cartelle dei file scompattati
-        if os.path.isdir(f"{DECOMPILED}/{file}"):
-            # Controllo che non sia stata già creata una cartella apposita
-            if not os.path.isdir(f"{RESULTS}/{file}"):
-                try:
-                    os.makedirs(file)
-                except OSError:
-                    print("Creation of the directory %s failed" % file)
-                else:
-                    print("Successfully created the directory %s " % file)
-            yield file
+                # saving the legend of the classes in the image
+                save_txt(f"{family}/{file} PNG Legend.txt", legend_of_image(dim, smali_k), True)
 
 
 if __name__ == "__main__":
     """MAIN"""
-    os.chdir(RESULTS)
+    start = time.perf_counter()
+    saving_space = True
+
+    args = parse_args()
+    _check_args(args)
+
+    if input('Do you want to save space? : ').lower().startswith('n'):
+        saving_space = False
+
     converter = Converter()
-    files = list(checking_file())
-    loop_per_decompiled(files)
+
+    loop_per_decompiled()
+
+    if not args.storage.startswith('n'):
+        create_dataset(number_of_apk, saving_space, args.percentual)
