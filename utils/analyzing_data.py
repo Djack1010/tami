@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.compat.v1.Session(config=config)
+
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import pandas as pd
@@ -96,13 +100,13 @@ def multiclass_analysis(model, test_ds, class_names, save_fig=None):
                     FN += cm[i][j]
                 else:
                     TN += cm[i][j]
-        accuracy = (TP+TN)/(TP+TN+FP+FN)
-        precision = TP/(TP+FP)
-        recall = TP/(TP+FN)
-        f1 = (2*precision*recall)/(precision+recall)
+        accuracy = (TP + TN) / (TP + TN + FP + FN)
+        precision = TP / (TP + FP)
+        recall = TP / (TP + FN)
+        f1 = (2 * precision * recall) / (precision + recall)
         results_classes[ind].update({'TP': TP, 'TN': TN, 'FP': FP, 'FN': FN,
-                                   'acc': accuracy, 'prec': precision, 'rec': recall, 'fm': f1})
-        to_print += "class {} -> TP: {}, TN: {}, FP: {}, FN: {}\n\tacc: {}, prec: {}, rec: {}, fm: {}, auc: {}\n"\
+                                     'acc': accuracy, 'prec': precision, 'rec': recall, 'fm': f1})
+        to_print += "class {} -> TP: {}, TN: {}, FP: {}, FN: {}\n\tacc: {}, prec: {}, rec: {}, fm: {}, auc: {}\n" \
             .format(class_names[ind], TP, TN, FP, FN, accuracy, precision, recall, f1, results_classes[ind]['AUC'])
 
     return cm, results_classes, to_print

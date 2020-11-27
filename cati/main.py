@@ -2,8 +2,9 @@ import argparse
 
 from cati.utils.opcode import *
 from cati.utils.tools import *
+from cati.utils.process_data import *
 
-number_of_apk = {}
+apk = {}
 
 
 def parse_args():
@@ -18,9 +19,8 @@ def parse_args():
                        help='Percentual of division between training and test, insert a number between 1 to 100'
                             ' to define how large training should be')
     # As default the division training/validation is 80/20
-    group.add_argument('-m', '--move', required=False, type=bool, default=False,
-                       help='Move the PNG file instead of copy'
-                            'insert True to change it')
+    group.add_argument('-d', '--dims', required=False, type=int, default=250,
+                       help='Dimension of the PNG genereted by the APK')
     arguments = parser.parse_args()
     return arguments
 
@@ -38,14 +38,15 @@ def _check_args(arguments):
 def loop_per_decompiled():
     """Elaborates the classes in the decompiled directories,
     saving data of the class itself and converting it in an image"""
+    apk = {}
     for family in os.listdir(DECOMPILED):
         if os.path.isdir(f'{DECOMPILED}/{family}'):
-            number_of_apk[family] = 0
+            apk[family] = 0
             os.chdir(RESULTS)
             if not os.path.isdir(f"{RESULTS}/{family}"):
                 create_folder(family)
             for file in os.listdir(f'{DECOMPILED}/{family}'):
-                number_of_apk[family] += 1
+                apk[family] += 1
                 #
                 # smali_paths = []  # Initialise the list
                 # smali_folder = f"{DECOMPILED}/{family}/{file}"
@@ -93,6 +94,7 @@ def loop_per_decompiled():
                 #
                 # # saving the legend of the classes in the image
                 # save_txt(f"{family}/{file} PNG Legend.txt", legend_of_image(dim, smali_k), True)
+    return apk
 
 
 if __name__ == "__main__":
@@ -104,7 +106,7 @@ if __name__ == "__main__":
 
     converter = Converter()
 
-    loop_per_decompiled()
+    apk = loop_per_decompiled()
 
     if not args.storage.startswith('n'):
-        create_dataset(number_of_apk, args.move, args.percentual)
+        create_dataset(apk, args.dims, args.percentual)
