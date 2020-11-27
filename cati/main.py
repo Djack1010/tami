@@ -47,53 +47,53 @@ def loop_per_decompiled():
                 create_folder(family)
             for file in os.listdir(f'{DECOMPILED}/{family}'):
                 apk[family] += 1
-                #
-                # smali_paths = []  # Initialise the list
-                # smali_folder = f"{DECOMPILED}/{family}/{file}"
-                # for subdirectory in os.listdir(smali_folder):
-                #     if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
-                #         find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
-                #
-                # general_content = ""
-                # class_legend = ""
-                # smali_k = {}
-                # cease = 0
-                # for smali in smali_paths:
-                #     class_name = smali.replace(f'{DECOMPILED}/family', "")
-                #
-                #     fr = open(smali, "r")
-                #     encoded_content = converter.encoder(fr.read())
-                #     fr.close()
-                #
-                #     # calculating number of lines and characters of the encoded class
-                #     num_line = encoded_content.count('\n')
-                #     num_character = len(encoded_content)
-                #
-                #     # saving number of character and coordinates of begin and finish of the class
-                #     smali_k[class_name] = num_character
-                #     begin = cease + 1
-                #     cease = begin + num_line
-                #     class_legend += f"{class_name} starts at the {begin}th line and ends at {cease}th line\n"
-                #     general_content += encoded_content
-                #
-                # # creating the image on the whole converted text
-                # img, pix_map, dim, num_character, lines = img_generator(general_content)
-                # char_reader(general_content, pix_map, dim)
-                #
-                # img.save(f"{family}/{file}.png")
-                #
-                # img, pix_map, dim = rgb_image_generator(len(general_content))
-                # pixel_generator(smali_k, pix_map, dim)
-                # img.save(f"{family}/{file} Legend.png")
-                #
-                # # saving the .txt containing all the compressed classes
-                # save_txt(f"{family}/{file}.txt", general_content, True)
-                #
-                # # saving the legend of the classes
-                # save_txt(f"{family}/{file} Legend.txt", class_legend, False)
-                #
-                # # saving the legend of the classes in the image
-                # save_txt(f"{family}/{file} PNG Legend.txt", legend_of_image(dim, smali_k), True)
+
+                smali_paths = []  # Initialise the list
+                smali_folder = f"{DECOMPILED}/{family}/{file}"
+                for subdirectory in os.listdir(smali_folder):
+                    if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
+                        find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
+
+                general_content = ""
+                class_legend = ""
+                smali_k = {}
+                cease = 0
+                for smali in smali_paths:
+                    class_name = smali.replace(f'{DECOMPILED}/family', "")
+
+                    fr = open(smali, "r")
+                    encoded_content = converter.encoder(fr.read())
+                    fr.close()
+
+                    # calculating number of lines and characters of the encoded class
+                    num_line = encoded_content.count('\n')
+                    num_character = len(encoded_content)
+
+                    # saving number of character and coordinates of begin and finish of the class
+                    smali_k[class_name] = num_character
+                    begin = cease + 1
+                    cease = begin + num_line
+                    class_legend += f"{class_name} starts at the {begin}th line and ends at {cease}th line\n"
+                    general_content += encoded_content
+
+                # creating the image on the whole converted text
+                img, pix_map, dim, num_character, lines = img_generator(general_content)
+                char_reader(general_content, pix_map, dim)
+
+                img.save(f"{family}/{file}.png")
+
+                img, pix_map, dim = rgb_image_generator(len(general_content))
+                pixel_generator(smali_k, pix_map, dim)
+                img.save(f"{family}/{file} Legend.png")
+
+                # saving the .txt containing all the compressed classes
+                save_txt(f"{family}/{file}.txt", general_content, True)
+
+                # saving the legend of the classes
+                save_txt(f"{family}/{file} Legend.txt", class_legend, False)
+
+                # saving the legend of the classes in the image
+                save_txt(f"{family}/{file} PNG Legend.txt", legend_of_image(dim, smali_k), True)
     return apk
 
 
