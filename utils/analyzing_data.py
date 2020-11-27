@@ -1,10 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.compat.v1.Session(config=config)
-
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
 import pandas as pd
