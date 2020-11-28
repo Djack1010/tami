@@ -101,7 +101,7 @@ def multiclass_analysis(model, test_ds, class_names, save_fig=None):
         recall = TP/(TP+FN)
         f1 = (2*precision*recall)/(precision+recall)
         results_classes[ind].update({'TP': TP, 'TN': TN, 'FP': FP, 'FN': FN,
-                                   'acc': accuracy, 'prec': precision, 'rec': recall, 'fm': f1})
+                                    'acc': accuracy, 'prec': precision, 'rec': recall, 'fm': f1})
         to_print += "class {} -> TP: {}, TN: {}, FP: {}, FN: {}\n\tacc: {}, prec: {}, rec: {}, fm: {}, auc: {}\n"\
             .format(class_names[ind], TP, TN, FP, FN, accuracy, precision, recall, f1, results_classes[ind]['AUC'])
 

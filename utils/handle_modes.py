@@ -26,11 +26,12 @@ def decode_img(img):
     return tf.image.resize(img, [config.IMG_DIM, config.IMG_DIM])
 
 
-def process_path(file_path):
+def process_path(file_path, tensor=True):
     label = get_label(file_path)
     # load the raw data from the file as a string
     img = tf.io.read_file(file_path)
-    img = decode_img(img)
+    if tensor:
+        img = decode_img(img)
     return img, label
 
 
@@ -224,27 +225,31 @@ def test(arguments, model, class_info, ds_info):
 
 
 def save_model(arguments, model):
-    model_path = config.main_path + 'models_saved/{}_m{}_i{}x{}' \
-        .format(arguments.output_model, arguments.model, arguments.image_size, arguments.channels)
+    model_path = config.main_path + 'models_saved/{}_m{}' \
+        .format(arguments.output_model, arguments.model)
 
     # save model and architecture to single file
-    if arguments.output_model is not None:
-        tf.keras.models.save_model(model, model_path, overwrite=False)
+    tf.keras.models.save_model(model, model_path, overwrite=False)
 
-        with open(model_path + '.info', 'wb') \
-                as filehandle:
-            store_data = {"CLASS_NAMES": config.CLASS_NAMES, "CHANNELS": config.CHANNELS, "IMG_DIM": config.IMG_DIM}
-            pickle.dump(store_data, filehandle)
+    with open(model_path + '.info', 'wb') \
+            as filehandle:
+        store_data = {"CLASS_NAMES": config.CLASS_NAMES, "CHANNELS": config.CHANNELS, "IMG_DIM": config.IMG_DIM}
+        pickle.dump(store_data, filehandle)
 
-        print_log("Model, Weights and Info saved to 'models_saved/{}_m{}_i{}x{}[.info]'"
-                  .format(arguments.output_model, arguments.model, arguments.image_size, arguments.channels),
-                  print_on_screen=True)
+    print_log("Model, Weights and Info saved to 'models_saved/{}_m{}[.info]'"
+              .format(arguments.output_model, arguments.model),
+              print_on_screen=True)
 
 
-def load_model(arguments):
+def load_model(arguments, required_img, required_chan, required_numClasses):
+    """
+    The required_img_chan args is (None,None) when the model is loaded with no specific request on the img size. That is
+    the case of the apply_gradcam, when we want just to test the model, while in main.py we could also specify an
+    --image_size arguments and then check if the loaded model fits this requirements
+    """
     print("LOADING MODEL")
-    model_path = config.main_path + 'models_saved/{}_m{}_i{}x{}'\
-        .format(arguments.load_model, arguments.model, arguments.image_size, arguments.channels)
+    model_path = config.main_path + 'models_saved/{}_m{}'\
+        .format(arguments.load_model, arguments.model)
     if not os.path.isdir(model_path):
         print("Model not found in {}, exiting...".format(model_path))
         exit()
@@ -256,14 +261,18 @@ def load_model(arguments):
     with open(model_path + ".info", 'rb') \
             as filehandle:
         stored_data = pickle.load(filehandle)
-        _ = stored_data["CLASS_NAMES"]
-        C = stored_data["CHANNELS"]
-        ID = stored_data["IMG_DIM"]
-        if C != config.CHANNELS or ID != config.IMG_DIM:
-            # TODO: Handle this case, the model should work in any case even if trained on different data, isn't it?
-            print("CHANNELS and IMG_DIM of the loaded model DIFFERS from the required! Exiting...")
-            print("Asking {} {} but found {} {}".format(config.CHANNELS, config.IMG_DIM, C, ID))
+        class_names = stored_data["CLASS_NAMES"]
+        channel = stored_data["CHANNELS"]
+        img_dim = stored_data["IMG_DIM"]
+        if (required_img is not None and img_dim != required_img) or \
+                (required_chan is not None and channel != required_chan) or \
+                (required_numClasses is not None and len(class_names) != required_numClasses):
+            print("IMG_DIM, CHANNELS and/or number of output classes DIFFERS from the required! Exiting...")
+            print("Asking img size with {}x{} on a {}-class classification problem, but model {}x{} and outputs on "
+                  "{}-class, exiting...".format(required_img, required_chan, required_numClasses, img_dim, channel,
+                                    len(class_names)))
             exit()
+
     return model
 
 
