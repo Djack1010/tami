@@ -64,14 +64,16 @@ def val_distances(features_vectors, res, fold, distance_algo='eucl'):
 nblocks = 4
 orientations_per_scale = (8, 8, 4)
 
-# CALCULATE distances for the original/standard folders
+# get list of folders with not MIX_ data
 class_folders_original = [x[0] for x in os.walk(main_path + 'results/images')
-                 if not x[0].split(os.sep)[-1].startswith("MIX_") and not x[0].endswith("images")]
+                          if not x[0].split(os.sep)[-1].startswith("MIX_") and not x[0].endswith("images")]
 
 fold = 1
 results = {}
 results2 = {}
 zero_distance_families = []
+
+# calculate distance for family folders
 for folder in class_folders_original:
     features_list = []
     heatmap_list = []
@@ -136,6 +138,8 @@ if MIXED:
 class_folders_MIX = [x[0] for x in os.walk(main_path + 'results/images')
                           if not x[0].endswith("images") and "MIX_" in x[0]]
 fold = 1
+
+# calculate distance for MIX folders
 for folder in class_folders_MIX:
     features_list = []
     heatmap_list = []
@@ -165,6 +169,7 @@ for folder in class_folders_MIX:
 
 print(results)
 
+# Print results on file, with an incremental 'j' to not overwrite previous results
 j = 0
 while os.path.isfile(main_path + 'results/images/results{}.json'.format(j)):
     j += 1

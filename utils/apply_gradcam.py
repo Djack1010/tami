@@ -1,11 +1,10 @@
 import math
 from models_code.gradcam import GradCAM
 from utils import config
-from utils.handle_modes import load_model, process_path
+from utils.handle_modes import process_path
 import tensorflow as tf
 import os
 import numpy as np
-import argparse
 import imutils
 import random
 import cv2
@@ -52,10 +51,6 @@ def merg_pics(list_of_pic):
             pic_std[i, j] = math.sqrt(temp / len(list_of_pic))
     return pic_new, pic_std
 
-
-# initialize the model
-#model, CLASS_NAMES, CHANNELS, IMG_DIM = _model_selection(arguments)
-# model.summary(line_length=50)
 
 def apply_gradcam(arguments, model, class_info):
 
