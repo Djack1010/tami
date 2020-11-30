@@ -3,8 +3,9 @@
 if [ "$1" == "--logs" ]; then
 	rm -f results/exec_logs/*.results
 	rm -f results/figures/*.png
+	rm -rf results/images/*
 	rm -rf results/tensorboard/fit/
-	echo "Cleaning /results/{exec_logs|figures|tensorboard} folders"
+	echo "Cleaning /results/{exec_logs|figures|tensorboard|images} folders"
 elif [ "$1" == "--models" ]; then
   rm -rf models_saved/*
   echo "Cleaning /models_saved folder"

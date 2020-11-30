@@ -11,6 +11,7 @@ import time
 from utils.generic_utils import print_log
 import utils.handle_modes as modes
 from utils.preprocessing_data import get_info_dataset
+from utils.apply_gradcam import apply_gradcam
 
 
 def parse_args():
@@ -39,10 +40,13 @@ def parse_args():
     group.add_argument('-w', '--weights', required=False, type=str, default=None,
                        help="If you do not want random initialization of the model weights "
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
-    group.add_argument('--mode', required=False, type=str, default='training',
-                       help="Choose which mode run between 'training' (default), 'test'. The 'training' mode will run"
-                            "a phase of training+validation on the training and validation set, while the 'test' mode"
-                            "will run a phase of training+test on the training+validation and test set.")
+    group.add_argument('--mode', required=False, type=str, default='train-val',
+                       help="Choose which mode run between 'train-val' (default), 'train-test', 'test' or 'gradcam'. "
+                            "The 'train-val' mode will run a phase of training and validation on the training and "
+                            "validation set, the 'train-test' mode will run a phase of training on the "
+                            "training+validation sets and then test on the test set, the 'test' mode will run only a "
+                            "phase of test on the test set. The 'gradcam' will run the gradcam analysis on the model"
+                            "provided.")
     # FLAGS
     group.add_argument('--exclude_top', dest='include_top', action='store_false',
                        help='Exclude the fully-connected layer at the top of the network (default INCLUDE)')
@@ -77,10 +81,14 @@ def _check_args(arguments):
         print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
             arguments.dataset))
         exit()
-    if arguments.mode != "training" and arguments.mode != "test":
+    if arguments.mode != "train-val" and arguments.mode != "train-test" and arguments.mode != "test" \
+            and arguments.mode != "gradcam":
         print('Invalid mode choice, exiting...')
         exit()
-    elif arguments.tuning is not None and arguments.tuning != 'hyperband' and arguments.tuning != 'random' \
+    elif arguments.mode == "gradcam" and args.load_model is None:
+        print("You need to specify a model to load with '-l MODEL_NAME' for the gradcam analysis, exiting...")
+        exit()
+    if arguments.tuning is not None and arguments.tuning != 'hyperband' and arguments.tuning != 'random' \
             and arguments.tuning != 'bayesian':
         print('Invalid tuning choice, exiting...')
         exit()
@@ -130,6 +138,8 @@ if __name__ == '__main__':
     # tf.keras.backend.set_floatx('float64')
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+    # TODO: checks if we want to perform operation on CPU or GPU
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # to disable GPU
     # Check if tensorflow can access the GPU
     device_name = tf.test.gpu_device_name()
     if not device_name:
@@ -145,20 +155,37 @@ if __name__ == '__main__':
     # Initialize variables and logs
     modes.initialization(args, class_info, ds_info)
 
+    # Special modes
+    # If tuning, the model to use has specific architecture define by build_tuning function in model classes
     if args.tuning is not None:
         modes.tuning(args, model_class, ds_info)
-    elif args.load_model is not None:
-        model = modes.load_model(args)
-        modes.test(args, model, class_info, ds_info)
+    # If gradcam, the model has to be loaded from memory (checked in check_args)
+    elif args.mode == 'gradcam':
+        # the '_loaded' refer to the information on which the model was trained on
+        model = modes.load_model(args, required_img=config.IMG_DIM, required_chan=config.CHANNELS,
+                                 required_numClasses=class_info['n_classes'])
+        apply_gradcam(args, model, class_info)
+
+    # Standard modes of training, validation and test
     else:
-        model = model_class.build()
 
-        if args.mode == 'training':
+        # Create model, either load from memory or create from model class
+        if args.load_model is not None:
+            model = modes.load_model(args, required_img=config.IMG_DIM, required_chan=config.CHANNELS,
+                                     required_numClasses=class_info['n_classes'])
+        else:
+            model = model_class.build()
+
+        # Modes which required a training phase
+        if args.mode == 'train-val':
             modes.train_val(args, model, ds_info)
-        elif args.mode == 'test':
+        elif args.mode == 'train-test':
             modes.train_test(args, model, class_info, ds_info)
+        elif args.mode == 'test':
+            modes.test(args, model, class_info, ds_info)
 
-        modes.save_model(args, model)
+        if args.output_model is not None:
+            modes.save_model(args, model)
 
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 

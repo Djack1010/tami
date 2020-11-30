@@ -27,6 +27,12 @@ if [ "$(ls results/tensorboard/)" ]; then
   rm -f BACKUP/${TIMESTAMP}/tensorboard/.gitignore
 fi
 
+if [ "$(ls results/images/)" ]; then
+  mkdir -p "BACKUP/${TIMESTAMP}"
+  cp -r results/images/ BACKUP/${TIMESTAMP}/
+  rm -f BACKUP/${TIMESTAMP}/images/.gitignore
+fi
+
 if [ "$(ls tuning/)" ]; then
   mkdir -p "BACKUP/${TIMESTAMP}"
   cp -r tuning/ BACKUP/${TIMESTAMP}/
