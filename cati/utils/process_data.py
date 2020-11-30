@@ -1,4 +1,5 @@
 from cati.utils.tools import *
+from cati.utils.config import *
 from PIL import Image
 
 

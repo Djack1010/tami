@@ -1,9 +1,4 @@
 import os
-from shutil import copy, move
-
-from PIL import Image
-
-from cati.utils.config import *
 
 
 def create_folder(folder):
