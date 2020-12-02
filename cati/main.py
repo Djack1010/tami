@@ -84,16 +84,16 @@ def loop_per_decompiled():
 
                 img, pix_map, dim = rgb_image_generator(len(general_content))
                 pixel_generator(smali_k, pix_map, dim)
-                img.save(f"{family}/{file} Legend.png")
+                img.save(f"{family}/{file}_legend.png")
 
                 # saving the .txt containing all the compressed classes
                 save_txt(f"{family}/{file}.txt", general_content, True)
 
                 # saving the legend of the classes
-                save_txt(f"{family}/{file} Legend.txt", class_legend, False)
+                save_txt(f"{family}/{file}_legend.txt", class_legend, False)
 
                 # saving the legend of the classes in the image
-                save_txt(f"{family}/{file} PNG Legend.txt", legend_of_image(dim, smali_k), True)
+                save_txt(f"{family}/{file}_PNG_Legend.txt", legend_of_image(dim, smali_k), True)
     return apk
 
 

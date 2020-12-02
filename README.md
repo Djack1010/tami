@@ -96,6 +96,7 @@ educational purposes, in order to get into the topic without making use of the K
 ## Authors & References
 
 * **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010) giacomo.iadarola(at)iit.cnr.it
+* **Christian Peluso** - *cati tool* - [1Stohk1](https://github.com/1Stohk1)
 
 If you are using this repository, please cite our work by referring to our publications (BibTex format):
 ```
