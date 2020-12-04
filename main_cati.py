@@ -1,10 +1,12 @@
 import argparse
+import os
+import time
 
-from cati.utils.opcode import *
-from cati.utils.tools import *
-from cati.utils.process_data import *
-
-apk = {}
+import cati.utils.opcode as opcode
+from cati.utils.cati_config import DECOMPILED, RESULTS
+import cati.utils.tools as tools
+import cati.utils.image as image
+import cati.utils.process_data as process_data
 
 
 def parse_args():
@@ -38,21 +40,21 @@ def _check_args(arguments):
 def loop_per_decompiled():
     """Elaborates the classes in the decompiled directories,
     saving data of the class itself and converting it in an image"""
-    apk = {}
+    temp_apk = {}
     for family in os.listdir(DECOMPILED):
         if os.path.isdir(f'{DECOMPILED}/{family}'):
-            apk[family] = 0
+            temp_apk[family] = 0
             os.chdir(RESULTS)
             if not os.path.isdir(f"{RESULTS}/{family}"):
-                create_folder(family)
+                tools.create_folder(family)
             for file in os.listdir(f'{DECOMPILED}/{family}'):
-                apk[family] += 1
+                temp_apk[family] += 1
 
                 smali_paths = []  # Initialise the list
                 smali_folder = f"{DECOMPILED}/{family}/{file}"
                 for subdirectory in os.listdir(smali_folder):
                     if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
-                        find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
+                        tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
 
                 general_content = ""
                 class_legend = ""
@@ -77,24 +79,24 @@ def loop_per_decompiled():
                     general_content += encoded_content
 
                 # creating the image on the whole converted text
-                img, pix_map, dim, num_character, lines = img_generator(general_content)
-                char_reader(general_content, pix_map, dim)
+                img, pix_map, dim, num_character, lines = image.img_generator(general_content)
+                image.char_reader(general_content, pix_map, dim)
 
                 img.save(f"{family}/{file}.png")
 
-                img, pix_map, dim = rgb_image_generator(len(general_content))
-                pixel_generator(smali_k, pix_map, dim)
+                img, pix_map, dim = image.rgb_image_generator(len(general_content))
+                image.pixel_generator(smali_k, pix_map, dim)
                 img.save(f"{family}/{file}_legend.png")
 
                 # saving the .txt containing all the compressed classes
-                save_txt(f"{family}/{file}.txt", general_content, True)
+                tools.save_txt(f"{family}/{file}.txt", general_content, True)
 
                 # saving the legend of the classes
-                save_txt(f"{family}/{file}_legend.txt", class_legend, False)
+                tools.save_txt(f"{family}/{file}_legend.txt", class_legend, False)
 
                 # saving the legend of the classes in the image
-                save_txt(f"{family}/{file}_PNG_Legend.txt", legend_of_image(dim, smali_k), True)
-    return apk
+                tools.save_txt(f"{family}/{file}_PNG_Legend.txt", image.legend_of_image(dim, smali_k), True)
+    return temp_apk
 
 
 if __name__ == "__main__":
@@ -104,9 +106,9 @@ if __name__ == "__main__":
     args = parse_args()
     _check_args(args)
 
-    converter = Converter()
+    converter = opcode.Converter()
 
     apk = loop_per_decompiled()
 
     if not args.storage.startswith('n'):
-        create_dataset(apk, args.dims, args.percentual)
+        process_data.create_dataset(apk, args.dims, args.percentual)
