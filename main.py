@@ -174,7 +174,13 @@ if __name__ == '__main__':
             model = modes.load_model(args, required_img=config.IMG_DIM, required_chan=config.CHANNELS,
                                      required_numClasses=class_info['n_classes'])
         else:
-            model = model_class.build()
+            try:
+                model = model_class.build()
+            except ValueError as e:
+                print("ERROR: {}".format(e))
+                print("NB. check if image size is big enough (usually, at least 25x1)")
+                exit()
+
 
         # Modes which required a training phase
         if args.mode == 'train-val':
