@@ -84,7 +84,7 @@ def get_ds(name_ds, ds_info):
     # Load filepaths
     file_paths = ds_info[name_ds]
     # Create tf.Dataset from filepaths
-    file_paths_ds = tf.data.Dataset.from_tensor_slices(file_paths)
+    file_paths_ds = tf.data.Dataset.from_tensor_slices(file_paths).shuffle(len(file_paths))
     return file_paths_ds
 
 

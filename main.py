@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 from models_code.basic import BASIC
 from models_code.nedo import NEDO
+from models_code.vinc import VINC
 from models_code.VGG16 import VGG16_19
 from utils import config
 import time
@@ -60,7 +61,7 @@ def parse_args():
 
 def _check_args(arguments):
     if arguments.model != "DATA" and arguments.model != "BASIC" and arguments.model != "NEDO" \
-            and arguments.model != "VGG16":
+            and arguments.model != "VINC" and arguments.model != "VGG16":
         print("Invalid model choice ('{}'), exiting...".format(arguments.model))
         exit()
     if re.match(r"^\d{2,4}x([13])$", arguments.image_size):
@@ -101,6 +102,8 @@ def _model_selection(arguments, nclasses):
         mod_class = BASIC(nclasses, arguments.image_size, arguments.channels)
     elif arguments.model == "NEDO":
         mod_class = NEDO(nclasses, arguments.image_size, arguments.channels)
+    elif arguments.model == "VINC":
+        mod_class = VINC(nclasses, arguments.image_size, arguments.channels)
     elif arguments.model == "VGG16":
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
@@ -174,7 +177,13 @@ if __name__ == '__main__':
             model = modes.load_model(args, required_img=config.IMG_DIM, required_chan=config.CHANNELS,
                                      required_numClasses=class_info['n_classes'])
         else:
-            model = model_class.build()
+            try:
+                model = model_class.build()
+            except ValueError as e:
+                print("ERROR: {}".format(e))
+                print("NB. check if image size is big enough (usually, at least 25x1)")
+                exit()
+
 
         # Modes which required a training phase
         if args.mode == 'train-val':

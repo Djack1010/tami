@@ -22,7 +22,8 @@ pip install -r requirements.txt
 ```
 
 #### External tools required for vectorization:
-GIST DESCRIPTOR
+
+[GIST DESCRIPTOR](https://github.com/tuttieee/lear-gist-python)
 
 The script `install.sh` should take care of the gist descriptor tool integration. If something fails, manually install
 the repo:
@@ -37,7 +38,8 @@ The DL models can be run with the `main.py` scripts:
 See further information on the arguments required with:
 ```
 python main.py --help
-usage: main.py [-h] -m MODEL -d DATASET [-o OUTPUT_MODEL] [-l LOAD_MODEL] [-t TUNING] [-e EPOCHS] [-b BATCH_SIZE] [-i IMAGE_SIZE] [-w WEIGHTS] [--mode MODE] [--exclude_top] [--caching]
+usage: main.py [-h] -m MODEL -d DATASET [-o OUTPUT_MODEL] [-l LOAD_MODEL] [-t TUNING] [-e EPOCHS] [-b BATCH_SIZE] [-i IMAGE_SIZE] [-w WEIGHTS] [--mode MODE] [--exclude_top]
+               [--caching]
 
 Deep Learning Image-based Malware Classification
 
@@ -46,9 +48,10 @@ optional arguments:
 
 Arguments:
   -m MODEL, --model MODEL
-                        BASIC, NEDO or VGG16
+                        DATA, BASIC, NEDO or VGG16
   -d DATASET, --dataset DATASET
-                        the dataset path, must have the folder structure: training/train, training/val and test,in each of this folders, one folder per class (see dataset_test)
+                        the dataset path, must have the folder structure: training/train, training/val and test,in each of this folders, one folder per class (see
+                        dataset_test)
   -o OUTPUT_MODEL, --output_model OUTPUT_MODEL
                         Name of model to store
   -l LOAD_MODEL, --load_model LOAD_MODEL
@@ -62,8 +65,9 @@ Arguments:
                         FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input (reshape will be applied)
   -w WEIGHTS, --weights WEIGHTS
                         If you do not want random initialization of the model weights (ex. 'imagenet' or path to weights to be loaded), not available for all models!
-  --mode MODE           Choose which mode run between 'training' (default), 'test'. The 'training' mode will runa phase of training+validation on the training and validation set, while
-                        the 'test' modewill run a phase of training+test on the training+validation and test set.
+  --mode MODE           Choose which mode run between 'train-val' (default), 'train-test', 'test' or 'gradcam'. The 'train-val' mode will run a phase of training and
+                        validation on the training and validation set, the 'train-test' mode will run a phase of training on the training+validation sets and then test on
+                        the test set, the 'test' mode will run only a phase of test on the test set. The 'gradcam' will run the gradcam analysis on the modelprovided.
   --exclude_top         Exclude the fully-connected layer at the top of the network (default INCLUDE)
   --caching             Caching dataset on file and loading per batches (IF db too big for memory)
 ```
@@ -92,6 +96,7 @@ educational purposes, in order to get into the topic without making use of the K
 ## Authors & References
 
 * **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010) giacomo.iadarola(at)iit.cnr.it
+* **Christian Peluso** - *cati tool* - [1Stohk1](https://github.com/1Stohk1)
 
 If you are using this repository, please cite our work by referring to our publications (BibTex format):
 ```
