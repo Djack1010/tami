@@ -13,6 +13,10 @@ purposes.
 2. Create a virtual environment with Python, then activate the environment and install the dependencies reported in the 
 requirements file.
 
+```
+pip install -r requirements.txt 
+```
+
 3. Install [apktool](https://ibotpeaches.github.io/Apktool/install) and follow the install instructions to set up 
 appropriately.
 
