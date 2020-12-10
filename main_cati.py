@@ -1,136 +1,134 @@
 import argparse
 import os
+import re
 import time
 
-<<<<<<< HEAD:cati/main.py
-from cati.utils.image import *
-from cati.utils.opcode import *
-from cati.utils.process_data import *
-=======
+from utils.config import timeExec
 import cati.utils.opcode as opcode
-from cati.utils.cati_config import DECOMPILED, RESULTS
 import cati.utils.tools as tools
 import cati.utils.image as image
 import cati.utils.process_data as process_data
->>>>>>> upstream/master:main_cati.py
+from cati.utils.cati_config import DECOMPILED, RESULTS
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='APK converter in OPCode and than in PNG gray scaled image')
+        description='APK converter in OPCode and than in PNG')
     group = parser.add_argument_group('Arguments')
     # OPTIONAL Arguments
-    group.add_argument('-s', '--storage', required=False, type=str, default='preprocess',
-                       help='Save a copy of the PNG files in a dataset tree struct '
-                            '[none (n) to do not create the dataset]')
-    group.add_argument('-p', '--percentual', required=False, type=int, default=80,
-                       help='Percentual of division between training and test, insert a number between 1 to 100'
-                            ' to define how large training should be')
-    # As default the division training/validation is 80/20
-    group.add_argument('-d', '--dims', required=False, type=int, default=250,
-                       help='Dimension of the PNG genereted by the APK')
+    group.add_argument('-t', '--training', required=False, type=int, default=80,
+                       help='Percentage of data to be saved in training, insert a number between 10 to 90')
+    group.add_argument('-v', '--validation', required=False, type=int, default=20,
+                       help='Percentage of data to be saved in validation, insert a number between 10 to 90')
+    group.add_argument('-i', '--image_size', required=False, type=str, default="250x1",
+                       help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input '
+                            'default is [250x1] (reshape will be applied)')
+    group.add_argument('-o', '--output_name', required=False, type=str, default="date",
+                       help='Enter the name by which you want to call the output')
+    # FLAGS
+    group.add_argument('--no_storage', dest='storage', action='store_false',
+                       help='Do not create a dataset in tami/DATASETS folder')
+    group.set_defaults(storage=True)
+    group.add_argument('--no_results', dest='results', action='store_false',
+                       help='Do nothing in results folder, so no creation of legends or images of the'
+                            ' smali files in cati/results folder')
+    group.set_defaults(results=True)
     arguments = parser.parse_args()
     return arguments
 
 
 def _check_args(arguments):
-    if arguments.storage != "preprocess" and arguments.storage != "normal" \
-            or not arguments.storage.startswith("p") and not arguments.storage.startswith("n"):
-        print('Invalid storage choice, exiting...')
+    if re.match(r"^\d{2,4}x([13])$", arguments.image_size):
+        img_size = arguments.image_size.split("x")[0]
+        channels = arguments.image_size.split("x")[1]
+        setattr(arguments, "image_size", int(img_size))
+        setattr(arguments, "channels", int(channels))
+    else:
+        print('Invalid image_size, exiting...')
         exit()
-        if arguments.training_test < 0 or arguments.training_test > 100:
-            print('Invalid suddivision, exiting...')
-            exit()
-
-
-def loop_per_decompiled():
-    """Elaborates the classes in the decompiled directories,
-    saving data of the class itself and converting it in an image"""
-<<<<<<< HEAD:cati/main.py
-    apks = {}
-    for family in os.listdir(DECOMPILED):
-        if os.path.isdir(f'{DECOMPILED}/{family}'):
-            apks[family] = 0
-=======
-    temp_apk = {}
-    for family in os.listdir(DECOMPILED):
-        if os.path.isdir(f'{DECOMPILED}/{family}'):
-            temp_apk[family] = 0
->>>>>>> upstream/master:main_cati.py
-            os.chdir(RESULTS)
-            if not os.path.isdir(f"{RESULTS}/{family}"):
-                tools.create_folder(family)
-            for file in os.listdir(f'{DECOMPILED}/{family}'):
-<<<<<<< HEAD:cati/main.py
-                apks[family] += 1
-=======
-                temp_apk[family] += 1
->>>>>>> upstream/master:main_cati.py
-
-                smali_paths = []  # Initialise the list
-                smali_folder = f"{DECOMPILED}/{family}/{file}"
-                for subdirectory in os.listdir(smali_folder):
-                    if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
-                        tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
-
-                general_content = ""
-                class_legend = ""
-                smali_k = {}
-                cease = 0
-                for smali in smali_paths:
-                    class_name = smali.replace(f'{DECOMPILED}/family', "")
-
-                    fr = open(smali, "r")
-                    encoded_content = converter.encoder(fr.read())
-                    fr.close()
-
-                    # calculating number of lines and characters of the encoded class
-                    num_line = encoded_content.count('\n')
-                    num_character = len(encoded_content)
-
-                    # saving number of character and coordinates of begin and finish of the class
-                    smali_k[class_name] = num_character
-                    begin = cease + 1
-                    cease = begin + num_line
-                    class_legend += f"{class_name} starts at the {begin}th line and ends at {cease}th line\n"
-                    general_content += encoded_content
-
-                # creating the image on the whole converted text
-                img, pix_map, dim, num_character, lines = image.img_generator(general_content)
-                image.char_reader(general_content, pix_map, dim)
-
-                img.save(f"{family}/{file}.png")
-
-                img, pix_map, dim = image.rgb_image_generator(len(general_content))
-                image.pixel_generator(smali_k, pix_map, dim)
-                img.save(f"{family}/{file}_legend.png")
-
-                # saving the .txt containing all the compressed classes
-                tools.save_txt(f"{family}/{file}.txt", general_content, True)
-
-                # saving the legend of the classes
-                tools.save_txt(f"{family}/{file}_legend.txt", class_legend, False)
-
-                # saving the legend of the classes in the image
-<<<<<<< HEAD:cati/main.py
-                save_txt(f"{family}/{file} PNG Legend.txt", legend_of_image(dim, smali_k), True)
-    return apks
-=======
-                tools.save_txt(f"{family}/{file}_PNG_Legend.txt", image.legend_of_image(dim, smali_k), True)
-    return temp_apk
->>>>>>> upstream/master:main_cati.py
+    if not 10 <= arguments.training <= 90:
+        print('Invalid training partition, exiting...')
+        exit()
+    if not 10 <= arguments.validation <= 90:
+        print('Invalid validation partition, exiting...')
+        exit()
 
 
 if __name__ == "__main__":
-    """MAIN"""
+    '''Converts the classes in the decompiled directories,
+    saving data of the class itself and converting them in image'''
     start = time.perf_counter()
 
     args = parse_args()
     _check_args(args)
 
+    apk = {}
     converter = opcode.Converter()
 
-    apk = loop_per_decompiled()
+    if not os.path.isdir(f"{RESULTS}/{args.output_name}_{timeExec}"):
+        tools.create_folder(f"{RESULTS}/{args.output_name}_{timeExec}")
+    RESULTS = f"{RESULTS}/{args.output_name}_{timeExec}"
 
-    if not args.storage.startswith('n'):
-        process_data.create_dataset(apk, args.dims, args.percentual)
+    for family in os.listdir(DECOMPILED):
+        if os.path.isdir(f'{DECOMPILED}/{family}'):
+            apk[family] = 0
+            if not os.path.isdir(f"{RESULTS}/{family}"):
+                tools.create_folder(f"{RESULTS}/{family}")
+            for file in os.listdir(f'{DECOMPILED}/{family}'):
+                apk[family] += 1
+
+                if args.results:
+                    smali_paths = []
+                    smali_folder = f"{DECOMPILED}/{family}/{file}"
+                    for subdirectory in os.listdir(smali_folder):
+                        if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
+                            tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
+
+                    general_content = ""
+                    class_legend = ""
+                    smali_k = {}
+                    close = 0
+                    for smali in smali_paths:
+                        class_name = smali.replace(f'{DECOMPILED}/{family}', "")
+
+                        fr = open(smali, "r")
+                        encoded_content = converter.encoder(fr.read())
+                        fr.close()
+
+                        # calculating number of lines and characters of the encoded class
+                        num_line = encoded_content.count('\n')
+                        num_character = len(encoded_content)
+
+                        # saving number of character and coordinates of begin and finish of the class
+                        smali_k[class_name] = num_character
+                        begin = close + 1
+                        close = begin + num_line
+                        class_legend += f"{class_name} [{begin},{close}]\n"
+                        general_content += encoded_content
+
+                    # creating the image on the whole converted text
+                    if args.channels == 1:
+                        img, pix_map, dim = image.img_generator(general_content, True)
+                        image.char_reader_greyscale(general_content, pix_map, dim)
+                    else:
+                        img, pix_map, dim = image.img_generator(general_content, False)
+                        image.char_reader_colorful(general_content, pix_map, dim)
+
+                    img.save(f"{RESULTS}/{family}/{file}.png")
+
+                    img, pix_map, dim = image.legend_image_generator(len(general_content))
+                    image.legend_pixel_generator(smali_k, pix_map, dim)
+                    img.save(f"{RESULTS}/{family}/{file}_legend.png")
+
+                    # saving the .txt containing all the compressed classes
+                    tools.save_txt(f"{RESULTS}/{family}/{file}.txt", general_content, True)
+
+                    # saving the legend of the classes
+                    tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", class_legend, False)
+
+                    # saving the legend of the classes in the image
+                    tools.save_txt(f"{RESULTS}/{family}/{file}_PNG_Legend.txt", image.legend_of_image(dim, smali_k), True)
+
+    if args.storage:
+        process_data.create_dataset(apk, args.output_name, args.image_size,
+                                    args.training, args.validation)

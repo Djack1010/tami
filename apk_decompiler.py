@@ -1,7 +1,7 @@
-import os
 import subprocess
-from utils.config import *
-from utils.tools import *
+
+from cati.utils.cati_config import *
+from cati.utils.tools import *
 
 if __name__ == "__main__":
     for family in os.listdir(APK_DIR):

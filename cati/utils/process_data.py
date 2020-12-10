@@ -1,24 +1,24 @@
-from cati.utils.tools import *
-from cati.utils.cati_config import *
+import os
+import cati.utils.tools as tls
+from cati.utils.cati_config import DATASETS, DECOMPILED, RESULTS, timeExec
 from PIL import Image
 
 
-def create_dataset(apks, dims, percentual):
-    create_folder(f"{DATASETS}/dataset_{timeExec}")
-    dataset_path = f"{DATASETS}/dataset_{timeExec}"
-    create_folder(f"{dataset_path}/training")
-    create_folder(f"{dataset_path}/training/train")
-    create_folder(f"{dataset_path}/training/val")
-    create_folder(f"{dataset_path}/test")
+def create_dataset(apks, name, side, training_per, validation_per):
+    tls.create_folder(f"{DATASETS}/{name}_{timeExec}")
+    dataset_path = f"{DATASETS}/{name}_{timeExec}"
+    tls.create_folder(f"{dataset_path}/training")
+    tls.create_folder(f"{dataset_path}/training/train")
+    tls.create_folder(f"{dataset_path}/training/val")
+    tls.create_folder(f"{dataset_path}/test")
     for family in apks:
-        create_folder(f"{dataset_path}/training/val/{family}")
-        create_folder(f"{dataset_path}/training/train/{family}")
-        create_folder(f"{dataset_path}/test/{family}")
-        training = apks[family] * percentual / 100
-        validation = training * 0.20
+        tls.create_folder(f"{dataset_path}/training/val/{family}")
+        tls.create_folder(f"{dataset_path}/training/train/{family}")
+        tls.create_folder(f"{dataset_path}/test/{family}")
+        training = apks[family] * training_per / 100
+        validation = training * validation_per / 100
         training -= validation
-        side = dims
-        i = 0
+        i = 1
         for file in os.listdir(f"{DECOMPILED}/{family}"):
             img = Image.open(f"{RESULTS}/{family}/{file}.png")
             wpercent = (side / float(img.size[0]))
