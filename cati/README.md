@@ -12,10 +12,16 @@ purposes.
 
 2. Create a virtual environment with Python, then activate the environment and install the dependencies reported in the 
 requirements file.
-
-```
-pip install -r requirements.txt 
-```
+   1. Windows
+    ```    
+        source venv/script/activate
+        pip install -r requirements.txt 
+   ```
+   2. Linux
+    ```    
+        source venv/bin/activate
+        pip install -r requirements.txt 
+   ```
 
 3. Install [apktool](https://ibotpeaches.github.io/Apktool/install) and follow the install instructions to set up 
 appropriately.
@@ -61,7 +67,6 @@ The datasets can be created with the main_cati.py script:
 See further information on the arguments required with:
 
 ```
-
 python main_cati.py --help
 usage: main_cati.py [-h] [-o DATASET_NAME] [-t TRAINING] [-v VALIDATION] [-i IMAGE_SIZE] [-b BATCH_SIZE] 
                     [-i IMAGE_SIZE][--no_storage] [--no_results]
@@ -78,6 +83,4 @@ usage: main_cati.py [-h] [-o DATASET_NAME] [-t TRAINING] [-v VALIDATION] [-i IMA
   --no_storage          Do not create a dataset in tami/DATASETS folder
   --no_results          Do nothing in results folder, so no creation of legends or images of the smali files in
                         cati/results folder
-
-
 ```
