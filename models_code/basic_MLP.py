@@ -14,7 +14,10 @@ class BasicMLP:
     def build(self):
 
         model = models.Sequential()
-        model.add(layers.Dense(300, input_shape=(self.vector_size,), activation='relu'))
+        model.add(layers.Dense(500, input_shape=(self.vector_size,), activation='relu'))
+        model.add(layers.Dense(700, activation='relu'))
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Dense(1000, activation='relu'))
         model.add(layers.Dense(500, activation='relu'))
         model.add(layers.Dropout(0.5))
         model.add(layers.Dense(250, activation='relu'))
