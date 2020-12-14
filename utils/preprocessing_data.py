@@ -29,7 +29,7 @@ def get_info_dataset(dataset_path, update=False):
         test_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/test")
                       for file in f if ".png" in file or ".jpg" in file]
 
-        ds_info = {'train_paths': train_paths, 'val_paths': val_paths, 'test_paths': test_paths,
+        ds_info = {'ds_type': 'images', 'train_paths': train_paths, 'val_paths': val_paths, 'test_paths': test_paths,
                    'final_training_paths': final_training_paths}
 
         class_names = np.array([item.name for item in pathlib.Path(dataset_path + "/training/train").glob('*')])

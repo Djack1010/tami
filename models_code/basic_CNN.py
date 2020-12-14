@@ -3,13 +3,14 @@ from tensorflow.keras import models
 from tensorflow.keras.metrics import Precision, Recall, AUC
 
 
-class BASIC:
+class BasicCNN:
 
     def __init__(self, num_classes, img_size, channels, name="basic"):
         self.name = name
         self.num_classes = num_classes
         self.input_width_height = img_size
         self.channels = channels
+        self.input_type = 'images'
 
     def build(self):
         model = models.Sequential()
