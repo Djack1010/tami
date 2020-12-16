@@ -1,16 +1,17 @@
+import subprocess
 import argparse
+from tqdm import tqdm
+import time
 import os
 import re
-import time
-import subprocess
 
 
-from utils.config import timeExec
+from cati.utils.cati_config import DECOMPILED, RESULTS
+import cati.utils.process_data as process_data
 import cati.utils.opcode as opcode
 import cati.utils.tools as tools
 import cati.utils.image as image
-import cati.utils.process_data as process_data
-from cati.utils.cati_config import DECOMPILED, RESULTS
+from utils.config import timeExec
 
 
 def parse_args():
@@ -56,6 +57,15 @@ def _check_args(arguments):
         exit()
 
 
+def check_files(FOLDER):
+    families = []
+    for folder in os.listdir(DECOMPILED):
+        if os.path.isdir(f'{DECOMPILED}/{folder}'):
+            tools.create_folder(f"{FOLDER}/{folder}")
+            families.append(folder)
+    return families
+
+
 if __name__ == "__main__":
     '''Converts the classes in the decompiled directories,
     saving data of the class itself and converting them in image'''
@@ -64,78 +74,67 @@ if __name__ == "__main__":
     args = parse_args()
     _check_args(args)
 
+    RESULTS = f"{RESULTS}/{args.output_name}"
+
     apk = {}
     converter = opcode.Converter()
 
-    if not os.path.isdir(f"{RESULTS}/{args.output_name}"):
-        tools.create_folder(f"{RESULTS}/{args.output_name}")
-    RESULTS = f"{RESULTS}/{args.output_name}"
+    tools.create_folder(f"{RESULTS}")
 
-    for family in os.listdir(DECOMPILED):
-        if os.path.isdir(f'{DECOMPILED}/{family}'):
-            apk[family] = 0
-            if not os.path.isdir(f"{RESULTS}/{family}"):
-                tools.create_folder(f"{RESULTS}/{family}")
-            for file in os.listdir(f'{DECOMPILED}/{family}'):
-                apk[family] += 1
+    FAMILIES = check_files(RESULTS)
 
-                if args.results:
-                    smali_paths = []
-                    smali_folder = f"{DECOMPILED}/{family}/{file}"
-                    for subdirectory in os.listdir(smali_folder):
-                        if "assets" not in subdirectory and "original" not in subdirectory and "res" not in subdirectory:
-                            tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
-                    if not smali_paths:
-                        print(f'ciao {smali_folder}/{subdirectory}')
-                        subprocess.call([f'rm -r {DECOMPILED}/{family}/{file}'],
-                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+    print('Processing of the macro folder')
+    for family in tqdm(FAMILIES):
+        apk[family] = 0
+        for file in tqdm(os.listdir(f'{DECOMPILED}/{family}')):
+            apk[family] += 1
+
+            if args.results:
+                smali_paths = []
+                smali_folder = f"{DECOMPILED}/{family}/{file}"
+                for subdirectory in os.listdir(smali_folder):
+                    if "assets" not in subdirectory and "original" not in subdirectory and "res" not in \
+                            subdirectory:
+                        tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
+                if not smali_paths:
+                    print(f'In folder {family} the file {file} will be removed cause it is empty')
+                    subprocess.call([f'rm -r {DECOMPILED}/{family}/{file}'],
+                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+                else:
+                    general_content = ""
+                    smali_k = {}
+                    close = 0
+                    for smali in smali_paths:
+                        class_name = smali.replace(f'{DECOMPILED}/{family}', "")
+
+                        fr = open(smali, "r")
+                        encoded_content = converter.encoder(fr.read())
+                        fr.close()
+
+                        # calculating number of characters of the encoded class
+                        num_character = len(encoded_content)
+
+                        # saving number of character
+                        smali_k[class_name] = num_character
+                        general_content += encoded_content
+
+                    # creating the image on the whole converted text
+                    if args.channels == 1:
+                        img, pix_map, dim = image.img_generator(general_content, True)
+                        image.char_reader_greyscale(general_content, pix_map, dim)
                     else:
-                        print('bello')
-                        pass
-                        general_content = ""
-                        class_legend = ""
-                        smali_k = {}
-                        close = 0
-                        for smali in smali_paths:
-                            class_name = smali.replace(f'{DECOMPILED}/{family}', "")
+                        img, pix_map, dim = image.img_generator(general_content, False)
+                        image.char_reader_colorful(general_content, pix_map, dim)
 
-                            fr = open(smali, "r")
-                            encoded_content = converter.encoder(fr.read())
-                            fr.close()
+                    img.save(f"{RESULTS}/{family}/{file}.png")
 
-                            # calculating number of lines and characters of the encoded class
-                            num_line = encoded_content.count('\n')
-                            num_character = len(encoded_content)
+                    img, pix_map, dim = image.legend_image_generator(len(general_content))
+                    image.legend_pixel_generator(smali_k, pix_map, dim)
+                    img.save(f"{RESULTS}/{family}/{file}_legend.png")
 
-                            # saving number of character and coordinates of begin and finish of the class
-                            smali_k[class_name] = num_character
-                            begin = close + 1
-                            close = begin + num_line
-                            class_legend += f"{class_name} [{begin},{close}]\n"
-                            general_content += encoded_content
-
-                        # creating the image on the whole converted text
-                        if args.channels == 1:
-                            img, pix_map, dim = image.img_generator(general_content, True)
-                            image.char_reader_greyscale(general_content, pix_map, dim)
-                        else:
-                            img, pix_map, dim = image.img_generator(general_content, False)
-                            image.char_reader_colorful(general_content, pix_map, dim)
-
-                        img.save(f"{RESULTS}/{family}/{file}.png")
-
-                        img, pix_map, dim = image.legend_image_generator(len(general_content))
-                        image.legend_pixel_generator(smali_k, pix_map, dim)
-                        img.save(f"{RESULTS}/{family}/{file}_legend.png")
-
-                        # saving the .txt containing all the compressed classes
-                        tools.save_txt(f"{RESULTS}/{family}/{file}.txt", general_content, True)
-
-                        # saving the legend of the classes
-                        tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", class_legend, False)
-
-                        # saving the legend of the classes in the image
-                        tools.save_txt(f"{RESULTS}/{family}/{file}_PNG_Legend.txt", image.legend_of_image(dim, smali_k), True)
+                    # saving the legend of the classes in the image
+                    tools.save_txt(f"{RESULTS}/{family}/{file}_PNG_Legend.txt", image.legend_of_image(dim,
+                                                                                                      smali_k))
 
     if args.storage:
         process_data.create_dataset(apk, args.output_name, args.image_size,
