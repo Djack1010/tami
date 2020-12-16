@@ -180,9 +180,12 @@ def train_val(arguments, model, ds_info):
     train_results = model.fit(x=train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
                               validation_data=val_ds, callbacks=[tensorboard_callback_fit])
 
-    print_log("\ttraining loss: {} \n\ttraining acc:{} \n\tvalidation loss:{} \n\tvalidation acc:{}"
-              .format(train_results.history['loss'], train_results.history['acc'],
-                      train_results.history['val_loss'], train_results.history['val_acc']))
+    print_log("\ttrain_loss: {} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
+              "\tval_loss:{} \n\tval_acc:{} \n\tval_prec:{} \n\tval_rec:{}"
+              .format(train_results.history['loss'], train_results.history['prec'], train_results.history['rec'],
+                      train_results.history['acc'],
+                      train_results.history['val_loss'], train_results.history['val_acc'],
+                      train_results.history['val_prec'], train_results.history['val_rec']))
 
     del train_ds, val_ds
 
@@ -208,8 +211,9 @@ def train_test(arguments, model, class_info, ds_info):
     start_training = time.perf_counter()
     final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs)
     end_training = time.perf_counter()
-    print_log("\ttraining loss: {} \n\ttraining acc:{}".format(final_train_results.history['loss'],
-                                                               final_train_results.history['acc']))
+    print_log("\ttrain_loss: {} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
+              .format(final_train_results.history['loss'], final_train_results.history['prec'],
+                      final_train_results.history['rec'], final_train_results.history['acc']))
     print_log("FINAL TRAINING TIME: {} ".format(str(datetime.timedelta(seconds=end_training - start_training))))
 
     del fin_train_ds
