@@ -76,11 +76,11 @@ usage: main_cati.py [-h] [-o DATASET_NAME] [-t TRAINING] [-v VALIDATION] [-i IMA
   -v VALIDATION, --validation VALIDATION
                         Percentage of data to be saved in validation, insert a number between 10 to 90
   -i IMAGE_SIZE, --image_size IMAGE_SIZE
-                        FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input default is 
+                        FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and Channel of the images in input default is 
                         [250x1] (reshape will be applied)
   -o OUTPUT_NAME, --output_name OUTPUT_NAME
                         Enter the name by which you want to call the output
-  --no_storage          Do not create a dataset in tami/DATASETS folder
+  --no_storage          Do not create a dataset in tami/DATASETS
   --no_results          Do nothing in results folder, so no creation of legends or images of the smali files in
-                        cati/results folder
+                        cati/results
 ```

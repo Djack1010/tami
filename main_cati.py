@@ -22,7 +22,7 @@ def parse_args():
     group.add_argument('-v', '--validation', required=False, type=int, default=20,
                        help='Percentage of data to be saved in validation, insert a number between 10 to 90')
     group.add_argument('-i', '--image_size', required=False, type=str, default="250x1",
-                       help='FORMAT ACCEPTED = SxC , the size (SIZExSIZE) and channel of the images in input '
+                       help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and Channel of the images in input '
                             'default is [250x1] (reshape will be applied)')
     group.add_argument('-o', '--output_name', required=False, type=str, default="data",
                        help='Enter the name by which you want to call the output')
