@@ -7,6 +7,8 @@ import datetime
 import time
 from utils.analyzing_data import multiclass_analysis
 import pickle
+import cv2
+import numpy as np
 
 
 def get_label(file_path):
@@ -21,18 +23,32 @@ def decode_img(img):
     # convert the compressed string to a 3D uint8 tensor
     img = tf.image.decode_png(img, channels=config.CHANNELS)  # tf.image.decode_jpeg(img, channels=CHANNELS)
     # Use `convert_image_dtype` to convert to floats in the [0,1] range.
-    img = tf.image.convert_image_dtype(img, tf.float32)
-    # resize the image to the desired size.
-    return tf.image.resize(img, [config.IMG_DIM, config.IMG_DIM])
+    return tf.image.convert_image_dtype(img, tf.float32)
 
 
-def process_path(file_path, tensor=True):
+def process_path(file_path, model_input='images', data_type='images'):
     label = get_label(file_path)
     # load the raw data from the file as a string
     img = tf.io.read_file(file_path)
-    if tensor:
+    if data_type == 'images':
         img = decode_img(img)
+        # resize the image to the desired size.
+        img = tf.image.resize(img, [config.IMG_DIM, config.IMG_DIM])
+        if model_input == 'vectors':
+            # flatten the data to vector
+            img = tf.reshape(img, [-1])
     return img, label
+
+
+def process_path_vector(file_paths):
+    vectors = []
+    labels = []
+    for fp in file_paths:
+        label = get_label(fp).numpy()
+        vector = cv2.cvtColor(cv2.imread(fp.numpy().decode("utf-8")), cv2.COLOR_BGR2GRAY).flatten()
+        vectors.append(vector)
+        labels.append(label)
+    return tf.data.Dataset.from_tensor_slices((np.array(vectors), np.array(labels)))
 
 
 def prepare_for_training(ds, batch_size, cache=True, shuffle_buffer_size=1000, loop=False):
@@ -88,44 +104,52 @@ def get_ds(name_ds, ds_info):
     return file_paths_ds
 
 
-def initialization(arguments, class_info, ds_info):
+def initialization(arguments, class_info, ds_info, model_class):
 
     # GLOBAL SETTINGS
     config.AUTOTUNE = tf.data.experimental.AUTOTUNE
-    config.CHANNELS = arguments.channels
-    config.IMG_DIM = arguments.image_size
     config.CLASS_NAMES = class_info['class_names']
     config.BATCH_SIZE = arguments.batch_size
+    config.DATA_REQ = model_class.input_type
 
     print("LOADING AND PRE-PROCESSING DATA")
 
-    # STATS
-    size_train, size_val, size_test = class_info['train_size'], class_info['val_size'], class_info['test_size']
-    class_names, nclasses = class_info['class_names'], class_info['n_classes']
+    try:
+        # STATS
+        size_train, size_val, size_test = class_info['train_size'], class_info['val_size'], class_info['test_size']
+        class_names, nclasses = class_info['class_names'], class_info['n_classes']
 
-    # Print information on log
-    # EXECUTION Info
-    mode_info = "load_model = {}".format(arguments.load_model) if arguments.load_model is not None \
-        else \
-        "tuning = {}".format(arguments.tuning) if arguments.tuning is not None else "mode = {}".format(arguments.mode)
-    print_log("INFO EXECUTION:"
-              "\n{}\nmodel = {}\ndataset = {}"
-              "\noutput_model = {}\nepochs = {}\nbatch_size = {}\ncaching = {}"
-              "\n----------------"
-              .format(mode_info, arguments.model, arguments.dataset,
-                      arguments.output_model, arguments.epochs, arguments.batch_size, arguments.caching))
+        # Print information on log
+        # EXECUTION Info
+        mode_info = "load_model = {}".format(arguments.load_model) if arguments.load_model is not None \
+            else \
+            "tuning = {}".format(arguments.tuning) if arguments.tuning is not None else "mode = {}".format(arguments.mode)
+        print_log("INFO EXECUTION:"
+                  "\n{}\nmodel = {}\ndataset = {}"
+                  "\noutput_model = {}\nepochs = {}\nbatch_size = {}\ncaching = {}"
+                  "\nmodel_input_type = {}"
+                  "\n----------------"
+                  .format(mode_info, arguments.model, arguments.dataset,
+                          arguments.output_model, arguments.epochs, arguments.batch_size, arguments.caching,
+                          config.DATA_REQ))
 
-    # DATA Info
-    print_log("INFO DATA:"
-              "\num_classes = {}\nclass_names= {}\nnsize_img= {}x{}\nSize train-val-test= {}-{}-{}"
-              .format(nclasses, class_names, arguments.image_size, arguments.channels, size_train, size_val, size_test))
-    for ds_class in class_names:
-        print_log("{} : {}-{}-{} -> {}".format(ds_class, class_info['info'][ds_class]['TRAIN'],
-                                               class_info['info'][ds_class]['VAL'],
-                                               class_info['info'][ds_class]['TEST'],
-                                               class_info['info'][ds_class]['TOT']))
-    print_log("----------------")
-
+        # DATA Info
+        print_log("INFO DATA:"
+                  "\nnum_classes = {}\nclass_names= {}\nSize train-val-test= {}-{}-{}"
+                  "\ndata_type = {}\nsize_{}"
+                  .format(nclasses, class_names, size_train, size_val, size_test,
+                          ds_info['ds_type'], "img = {}x{}".format(config.IMG_DIM, config.CHANNELS)
+                                            if config.DATA_REQ == "images" else "vec = {}".format(config.VECTOR_DIM)))
+        for ds_class in class_names:
+            print_log("{} : {}-{}-{} -> {}".format(ds_class, class_info['info'][ds_class]['TRAIN'],
+                                                   class_info['info'][ds_class]['VAL'],
+                                                   class_info['info'][ds_class]['TEST'],
+                                                   class_info['info'][ds_class]['TOT']))
+        print_log("----------------")
+    except KeyError as e:
+        print("KeyError: {}".format(e))
+        print("POSSIBLE FIX: run 'python main.py -m DATA -d {}'".format(arguments.dataset))
+        exit()
 
 def train_val(arguments, model, ds_info):
 
@@ -136,8 +160,12 @@ def train_val(arguments, model, ds_info):
 
     #  Use Dataset.map to create a dataset of image, label pairs
     # Set `num_parallel_calls` so multiple images are loaded/processed in parallel.
-    lab_train_ds = train_paths_ds.map(process_path, num_parallel_calls=config.AUTOTUNE)
-    lab_val_ds = val_paths_ds.map(process_path, num_parallel_calls=config.AUTOTUNE)
+    lab_train_ds = train_paths_ds.map(lambda x: process_path(x, model_input=config.DATA_REQ,
+                                                             data_type=ds_info['ds_type']),
+                                      num_parallel_calls=config.AUTOTUNE)
+    lab_val_ds = val_paths_ds.map(lambda x: process_path(x, model_input=config.DATA_REQ,
+                                                         data_type=ds_info['ds_type']),
+                                      num_parallel_calls=config.AUTOTUNE)
 
     # Caching dataset in memory for big dataset (IF arguments.caching is set)
     train_ds, val_ds = prepare_ds(arguments.caching, lab_train_ds, "train", arguments.batch_size),\
@@ -168,7 +196,9 @@ def train_test(arguments, model, class_info, ds_info):
 
     #  Use Dataset.map to create a dataset of image, label pairs
     # Set `num_parallel_calls` so multiple images are loaded/processed in parallel.
-    lab_final_train_ds = final_training_paths_ds.map(process_path, num_parallel_calls=config.AUTOTUNE)
+    lab_final_train_ds = final_training_paths_ds.map(lambda x: process_path(x, model_input=config.DATA_REQ,
+                                                                            data_type=ds_info['ds_type']),
+                                                     num_parallel_calls=config.AUTOTUNE)
 
     # NB The batch_size for testing is set to 1 to make easier the calculation of the performance results
     fin_train_ds = prepare_ds(arguments.caching, lab_final_train_ds, "fin_tr", arguments.batch_size)
@@ -197,7 +227,9 @@ def test(arguments, model, class_info, ds_info):
 
     #  Use Dataset.map to create a dataset of image, label pairs
     # Set `num_parallel_calls` so multiple images are loaded/processed in parallel.
-    lab_test_ds = test_paths_ds.map(process_path, num_parallel_calls=config.AUTOTUNE)
+    lab_test_ds = test_paths_ds.map(lambda x: process_path(x, model_input=config.DATA_REQ,
+                                                           data_type=ds_info['ds_type']),
+                                    num_parallel_calls=config.AUTOTUNE)
 
     # NB The batch size for test is set to 1 to make easier the calculation of the performance results
     test_ds = prepare_ds(arguments.caching, lab_test_ds, "test", 1)
@@ -207,9 +239,13 @@ def test(arguments, model, class_info, ds_info):
     results = model.evaluate(test_ds)
     print_log("\ttest loss: {} \n\ttest accuracy: {}".format(results[0], results[1]), print_on_screen=True)
     print_log("\tPrec: {} \n\tRecall: {}".format(results[2], results[3]), print_on_screen=True)
-    # F-measure calculated as (2 * Prec * Recall)/(Prec + Recall)
-    print_log("\tF-Measure: {} \n\tAUC: {}"
-              .format((2 * results[2] * results[3]) / (results[2] + results[3]), results[4]), print_on_screen=True)
+    try:
+        # F-measure calculated as (2 * Prec * Recall)/(Prec + Recall)
+        print_log("\tF-Measure: {} \n\tAUC: {}"
+                  .format((2 * results[2] * results[3]) / (results[2] + results[3]), results[4]), print_on_screen=True)
+    except ZeroDivisionError:
+        print_log("\tF-Measure: {} \n\tAUC: {}"
+                  .format("Error", results[4]), print_on_screen=True)
 
     # TODO: split evaluation and prediction in two phases -> at the moment, the test set is first used by model.evaluate
     # to get cumulative information, and then is again used by model.predict to get per class information, thus, the
@@ -294,8 +330,12 @@ def tuning(arguments, model_class, ds_info):
 
     #  Use Dataset.map to create a dataset of image, label pairs
     # Set `num_parallel_calls` so multiple images are loaded/processed in parallel.
-    lab_train_ds = train_paths_ds.map(process_path, num_parallel_calls=config.AUTOTUNE)
-    lab_val_ds = val_paths_ds.map(process_path, num_parallel_calls=config.AUTOTUNE)
+    lab_train_ds = train_paths_ds.map(lambda x: process_path(x, model_input=config.DATA_REQ,
+                                                             data_type=ds_info['ds_type']),
+                                      num_parallel_calls=config.AUTOTUNE)
+    lab_val_ds = val_paths_ds.map(lambda x: process_path(x, model_input=config.DATA_REQ,
+                                                         data_type=ds_info['ds_type']),
+                                  num_parallel_calls=config.AUTOTUNE)
 
     # Caching dataset in memory for big dataset (IF arguments.caching is set)
     train_ds, val_ds = prepare_ds(arguments.caching, lab_train_ds, "train", arguments.batch_size), \

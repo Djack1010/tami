@@ -3,7 +3,8 @@ import datetime
 import re
 import os
 import tensorflow as tf
-from models_code.basic import BASIC
+from models_code.basic_CNN import BasicCNN as b_cnn
+from models_code.basic_MLP import BasicMLP as b_mlp
 from models_code.nedo import NEDO
 from models_code.vinc import VINC
 from models_code.VGG16 import VGG16_19
@@ -20,8 +21,9 @@ def parse_args():
         description='Deep Learning Image-based Malware Classification')
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
-    group.add_argument('-m', '--model', required=True, type=str,
-                       help='DATA, BASIC, NEDO or VGG16')
+    group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'BASIC_CNN', 'BASIC_LSTM',
+                                                                          'BASIC_MLP', 'NEDO', 'VINC', 'VGG16'],
+                       help='DATA, BASIC_[CNN|LSTM|MLP], NEDO or VGG16')
     group.add_argument('-d', '--dataset', required=True, type=str,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
                             'in each of this folders, one folder per class (see dataset_test)')
@@ -60,10 +62,6 @@ def parse_args():
 
 
 def _check_args(arguments):
-    if arguments.model != "DATA" and arguments.model != "BASIC" and arguments.model != "NEDO" \
-            and arguments.model != "VINC" and arguments.model != "VGG16":
-        print("Invalid model choice ('{}'), exiting...".format(arguments.model))
-        exit()
     if re.match(r"^\d{2,4}x([13])$", arguments.image_size):
         img_size = arguments.image_size.split("x")[0]
         channels = arguments.image_size.split("x")[1]
@@ -82,6 +80,7 @@ def _check_args(arguments):
         print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
             arguments.dataset))
         exit()
+    # TODO: update args checks, remove next lines and add this checks as choices=[] in argparse directly (see model)
     if arguments.mode != "train-val" and arguments.mode != "train-test" and arguments.mode != "test" \
             and arguments.mode != "gradcam":
         print('Invalid mode choice, exiting...')
@@ -95,25 +94,26 @@ def _check_args(arguments):
         exit()
 
 
-def _model_selection(arguments, nclasses):
+def _model_selection(model_choice, nclasses):
     print("INITIALIZING MODEL")
     mod_class = None
-    if arguments.model == "BASIC":
-        mod_class = BASIC(nclasses, arguments.image_size, arguments.channels)
-    elif arguments.model == "NEDO":
-        mod_class = NEDO(nclasses, arguments.image_size, arguments.channels)
-    elif arguments.model == "VINC":
-        mod_class = VINC(nclasses, arguments.image_size, arguments.channels)
-    elif arguments.model == "VGG16":
+    if model_choice == "BASIC_CNN":
+        mod_class = b_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
+    elif model_choice == "BASIC_MLP":
+        mod_class = b_mlp(nclasses, config.VECTOR_DIM)
+    elif model_choice == "NEDO":
+        mod_class = NEDO(nclasses, config.IMG_DIM, config.CHANNELS)
+    elif model_choice == "VINC":
+        mod_class = VINC(nclasses, config.IMG_DIM, config.CHANNELS)
+    elif model_choice == "VGG16":
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
-        if arguments.channels != 3:
+        if config.CHANNELS != 3:
             print("VGG requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = VGG16_19(nclasses, arguments.image_size, arguments.channels,
-                               weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = VGG16_19(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
     else:
-        print("model {} not implemented yet...".format(arguments.model))
+        print("model {} not implemented yet...".format(model_choice))
         exit()
 
     return mod_class
@@ -152,11 +152,15 @@ if __name__ == '__main__':
 
     print_log("STARTING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
+    config.CHANNELS = args.channels
+    config.IMG_DIM = args.image_size
+    config.VECTOR_DIM = args.image_size * args.image_size * args.channels
+
     # SELECTING MODELS
-    model_class = _model_selection(args, class_info['n_classes'])
+    model_class = _model_selection(args.model, class_info['n_classes'])
 
     # Initialize variables and logs
-    modes.initialization(args, class_info, ds_info)
+    modes.initialization(args, class_info, ds_info, model_class)
 
     # Special modes
     # If tuning, the model to use has specific architecture define by build_tuning function in model classes
