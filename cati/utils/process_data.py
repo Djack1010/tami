@@ -1,5 +1,6 @@
 import os
 import cati.utils.tools as tls
+from tqdm import tqdm
 from cati.utils.cati_config import DATASETS, DECOMPILED, RESULTS, timeExec
 from PIL import Image
 
@@ -11,6 +12,7 @@ def create_dataset(apks, name, side, training_per, validation_per):
     tls.create_folder(f"{dataset_path}/training")
     tls.create_folder(f"{dataset_path}/training/train")
     tls.create_folder(f"{dataset_path}/training/val")
+    print('Constructed tree structure')
     for family in apks:
         tls.create_folder(f"{dataset_path}/training/val/{family}")
         tls.create_folder(f"{dataset_path}/training/train/{family}")
@@ -19,7 +21,9 @@ def create_dataset(apks, name, side, training_per, validation_per):
         validation = training * validation_per / 100
         training -= validation
         i = 1
-        for file in os.listdir(f"{DECOMPILED}/{family}"):
+        image_progressing = tqdm(os.listdir(f"{DECOMPILED}/{family}"),
+                                 position=0, unit=' image', bar_format='{desc}{percentage:3.0f}%|{bar:20}{r_bar}')
+        for file in image_progressing:
             img = Image.open(f"{RESULTS}/{name}/{family}/{file}.png")
             wpercent = (side / float(img.size[0]))
             hsize = int((float(img.size[1]) * float(wpercent)))

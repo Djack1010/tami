@@ -6,9 +6,7 @@ def create_folder(folder):
         try:
             os.makedirs(folder)
         except OSError:
-            print("Creation of the directory %s failed" % folder)
-        else:
-            print("Successfully created the directory %s " % folder)
+            pass
 
 
 def find_smali(path, paths):

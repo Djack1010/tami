@@ -1,17 +1,15 @@
+from datetime import datetime
+from tqdm import tqdm
 import subprocess
 import argparse
-from tqdm import tqdm
-import time
 import os
 import re
-
 
 from cati.utils.cati_config import DECOMPILED, RESULTS
 import cati.utils.process_data as process_data
 import cati.utils.opcode as opcode
 import cati.utils.tools as tools
 import cati.utils.image as image
-from utils.config import timeExec
 
 
 def parse_args():
@@ -24,17 +22,17 @@ def parse_args():
     group.add_argument('-v', '--validation', required=False, type=int, default=20,
                        help='Percentage of data to be saved in validation, insert a number between 10 to 90')
     group.add_argument('-i', '--image_size', required=False, type=str, default="250x1",
-                       help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input '
+                       help='FORMAT ACCEPTED = SxC , the size (SIZExSIZE) and channel of the images in input '
                             'default is [250x1] (reshape will be applied)')
     group.add_argument('-o', '--output_name', required=False, type=str, default="data",
                        help='Enter the name by which you want to call the output')
     # FLAGS
     group.add_argument('--no_storage', dest='storage', action='store_false',
-                       help='Do not create a dataset in tami/DATASETS folder')
+                       help='Do not create a dataset in tami/DATASETS')
     group.set_defaults(storage=True)
     group.add_argument('--no_results', dest='results', action='store_false',
-                       help='Do nothing in results folder, so no creation of legends or images of the'
-                            ' smali files in cati/results folder')
+                       help='Do nothing in results folder, so no creation of images or legends of the'
+                            ' smali files in cati/RESULTS')
     group.set_defaults(results=True)
     arguments = parser.parse_args()
     return arguments
@@ -57,11 +55,11 @@ def _check_args(arguments):
         exit()
 
 
-def check_files(FOLDER):
+def _check_files(RES_FOLDER):
     families = []
     for folder in os.listdir(DECOMPILED):
         if os.path.isdir(f'{DECOMPILED}/{folder}'):
-            tools.create_folder(f"{FOLDER}/{folder}")
+            tools.create_folder(f"{RES_FOLDER}/{folder}")
             families.append(folder)
     return families
 
@@ -69,73 +67,80 @@ def check_files(FOLDER):
 if __name__ == "__main__":
     '''Converts the classes in the decompiled directories,
     saving data of the class itself and converting them in image'''
-    start = time.perf_counter()
+    start = datetime.now()
+    print(f'Start time {start}')
 
     args = parse_args()
     _check_args(args)
 
-    RESULTS = f"{RESULTS}/{args.output_name}"
-
-    apk = {}
     converter = opcode.Converter()
 
+    RESULTS = f"{RESULTS}/{args.output_name}"
     tools.create_folder(f"{RESULTS}")
+    FAMILIES = _check_files(RESULTS)
 
-    FAMILIES = check_files(RESULTS)
+    apk = {}
 
-    print('Processing of the macro folder')
-    for family in tqdm(FAMILIES):
+    print('Initialization completed...')
+
+    for family in FAMILIES:
         apk[family] = 0
-        for file in tqdm(os.listdir(f'{DECOMPILED}/{family}')):
+        file_progressing = tqdm(os.listdir(f'{DECOMPILED}/{family}'),
+                                position=0, unit=' file', bar_format='')
+        for file in file_progressing:
             apk[family] += 1
-
             if args.results:
+                name = file[0:10]
+                file_progressing.bar_format = '{desc}{percentage:3.0f}%|{bar:20}{r_bar}'
+                file_progressing.set_description(f'Processing the file ({name}...) of the folder ({family})')
+
                 smali_paths = []
                 smali_folder = f"{DECOMPILED}/{family}/{file}"
+                # recursive function for the search of smali
                 for subdirectory in os.listdir(smali_folder):
                     if "assets" not in subdirectory and "original" not in subdirectory and "res" not in \
                             subdirectory:
                         tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
                 if not smali_paths:
-                    print(f'In folder {family} the file {file} will be removed cause it is empty')
+                    print(f'In folder {family} the file {file} will be removed cause it has not smali codes')
                     subprocess.call([f'rm -r {DECOMPILED}/{family}/{file}'],
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
                 else:
                     general_content = ""
                     smali_k = {}
-                    close = 0
+                    end = 0
                     for smali in smali_paths:
                         class_name = smali.replace(f'{DECOMPILED}/{family}', "")
-
                         fr = open(smali, "r")
                         encoded_content = converter.encoder(fr.read())
                         fr.close()
 
-                        # calculating number of characters of the encoded class
+                        # saving number of character and encoded content
                         num_character = len(encoded_content)
-
-                        # saving number of character
                         smali_k[class_name] = num_character
                         general_content += encoded_content
 
                     # creating the image on the whole converted text
-                    if args.channels == 1:
+                    if args.channels == 1:  # greyscale
                         img, pix_map, dim = image.img_generator(general_content, True)
                         image.char_reader_greyscale(general_content, pix_map, dim)
-                    else:
+                    else:  # colorful
                         img, pix_map, dim = image.img_generator(general_content, False)
                         image.char_reader_colorful(general_content, pix_map, dim)
-
                     img.save(f"{RESULTS}/{family}/{file}.png")
 
+                    # saving the png with the class division
                     img, pix_map, dim = image.legend_image_generator(len(general_content))
                     image.legend_pixel_generator(smali_k, pix_map, dim)
-                    img.save(f"{RESULTS}/{family}/{file}_legend.png")
+                    img.save(f"{RESULTS}/{family}/{file}_class.png")
 
                     # saving the legend of the classes in the image
-                    tools.save_txt(f"{RESULTS}/{family}/{file}_PNG_Legend.txt", image.legend_of_image(dim,
-                                                                                                      smali_k))
+                    tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", image.legend_of_image(dim, smali_k))
+    if args.result:
+        print('Creation of the images completed')
 
     if args.storage:
         process_data.create_dataset(apk, args.output_name, args.image_size,
                                     args.training, args.validation)
+        print('Creation of the dataset completed')
+    print(f'Done\nTotal time: {datetime.now() - start}')
