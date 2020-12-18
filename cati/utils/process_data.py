@@ -12,7 +12,6 @@ def create_dataset(apks, name, side, training_per, validation_per):
     tls.create_folder(f"{dataset_path}/training")
     tls.create_folder(f"{dataset_path}/training/train")
     tls.create_folder(f"{dataset_path}/training/val")
-    print('Initialization completed...\n')
     for family in apks:
         tls.create_folder(f"{dataset_path}/training/val/{family}")
         tls.create_folder(f"{dataset_path}/training/train/{family}")
@@ -21,9 +20,10 @@ def create_dataset(apks, name, side, training_per, validation_per):
         validation = training * validation_per / 100
         training -= validation
         i = 1
-        image_progressing = tqdm(os.listdir(f"{DECOMPILED}/{family}"), ascii=True,
-                                 position=0, unit=' image', bar_format='{desc}{percentage:3.0f}%|{bar:20}{r_bar}')
+        image_progressing = tqdm(os.listdir(f"{DECOMPILED}/{family}"),
+                                 position=0, unit=' image', bar_format='{desc}|{bar:20}{r_bar}', leave=False)
         for file in image_progressing:
+            image_progressing.set_description(f'Moving the file ({file[0:10]}...) of the folder ({family})')
             img = Image.open(f"{RESULTS}/{name}/{family}/{file}.png")
             wpercent = (side / float(img.size[0]))
             hsize = int((float(img.size[1]) * float(wpercent)))

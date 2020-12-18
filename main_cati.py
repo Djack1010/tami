@@ -86,14 +86,13 @@ if __name__ == "__main__":
 
     for family in FAMILIES:
         apk[family] = 0
-        file_progressing = tqdm(os.listdir(f'{DECOMPILED}/{family}'), ascii=True,
-                                position=0, unit=' file', bar_format='')
+        file_progressing = tqdm(os.listdir(f'{DECOMPILED}/{family}'),
+                                position=0, unit=' file', bar_format='', leave=False)
         for file in file_progressing:
             apk[family] += 1
             if args.results:
-                name = file[0:10]
-                file_progressing.bar_format = '{desc}{percentage:3.0f}%|{bar:20}{r_bar}'
-                file_progressing.set_description(f'Processing the file ({name}...) of the folder ({family})')
+                file_progressing.bar_format = '{desc}|{bar:20}{r_bar}'
+                file_progressing.set_description(f'Processing the file ({file[0:10]}...) of the folder ({family})')
 
                 smali_paths = []
                 smali_folder = f"{DECOMPILED}/{family}/{file}"
@@ -141,6 +140,7 @@ if __name__ == "__main__":
         print('Creation of the images completed')
 
     if args.storage:
+        print('Starting to build the dataset')
         process_data.create_dataset(apk, args.output_name, args.image_size,
                                     args.training, args.validation)
         print('Creation of the dataset completed')
