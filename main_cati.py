@@ -5,7 +5,7 @@ import argparse
 import os
 import re
 
-from cati.utils.cati_config import DECOMPILED, RESULTS
+from cati.utils.cati_config import DECOMPILED, RESULTS, APK_DIR
 import cati.utils.process_data as process_data
 import cati.utils.opcode as opcode
 import cati.utils.tools as tools
@@ -102,8 +102,8 @@ if __name__ == "__main__":
                             subdirectory:
                         tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
                 if not smali_paths:
-                    print(f'In folder {family} the file {file} will be removed cause it has not smali codes')
-                    subprocess.call([f'rm -r {DECOMPILED}/{family}/{file}'],
+                    # this command will remove unuseful apk
+                    subprocess.call([f'rm -r {DECOMPILED}/{family}/{file} {APK_DIR}/{family}/{file}'],
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
                 else:
                     general_content = ""
