@@ -67,7 +67,8 @@ def _check_files(RES_FOLDER):
 if __name__ == "__main__":
     '''Converts the classes in the decompiled directories,
     saving data of the class itself and converting them in image'''
-    start = datetime.now()
+    FMT = '%H:%M:%S'
+    start = datetime.now().strftime(FMT)
     print(f'Start time {start}')
 
     args = parse_args()
@@ -81,11 +82,11 @@ if __name__ == "__main__":
 
     apk = {}
 
-    print('Initialization completed...')
+    print('Initialization completed...\n')
 
     for family in FAMILIES:
         apk[family] = 0
-        file_progressing = tqdm(os.listdir(f'{DECOMPILED}/{family}'),
+        file_progressing = tqdm(os.listdir(f'{DECOMPILED}/{family}'), ascii=True,
                                 position=0, unit=' file', bar_format='')
         for file in file_progressing:
             apk[family] += 1
@@ -136,11 +137,13 @@ if __name__ == "__main__":
 
                     # saving the legend of the classes in the image
                     tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", image.legend_of_image(dim, smali_k))
-    if args.result:
+    if args.results:
         print('Creation of the images completed')
 
     if args.storage:
         process_data.create_dataset(apk, args.output_name, args.image_size,
                                     args.training, args.validation)
         print('Creation of the dataset completed')
-    print(f'Done\nTotal time: {datetime.now() - start}')
+    end = datetime.now().strftime(FMT)
+    total_time = datetime.strptime(end, FMT) - datetime.strptime(start, FMT)
+    print(f'Done\nTotal time: {total_time}')
