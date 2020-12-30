@@ -2,12 +2,11 @@ import os
 
 
 def create_folder(folder):
-    try:
-        os.makedirs(folder)
-    except OSError:
-        print("Creation of the directory %s failed" % folder)
-    else:
-        print("Successfully created the directory %s " % folder)
+    if not os.path.isdir(folder):
+        try:
+            os.makedirs(folder)
+        except OSError:
+            pass
 
 
 def find_smali(path, paths):
@@ -19,11 +18,8 @@ def find_smali(path, paths):
             find_smali(f'{path}/{subdirectories}', paths)
 
 
-def save_txt(path, content, utf):
-    if utf:
-        fw = open(path, "w", encoding='utf-8')
-    else:
-        fw = open(path, "w")
+def save_txt(path, content):
+    fw = open(path, "w")
     fw.write(content)
     fw.close()
 

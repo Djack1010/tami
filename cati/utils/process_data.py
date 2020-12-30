@@ -1,26 +1,30 @@
-from cati.utils.tools import *
-from cati.utils.cati_config import *
+import os
+import cati.utils.tools as tls
+from tqdm import tqdm
+from cati.utils.cati_config import DATASETS, DECOMPILED, RESULTS, timeExec
 from PIL import Image
 
 
-def create_dataset(apks, dims, percentual):
-    create_folder(f"{DATASETS}/dataset_{timeExec}")
-    dataset_path = f"{DATASETS}/dataset_{timeExec}"
-    create_folder(f"{dataset_path}/training")
-    create_folder(f"{dataset_path}/training/train")
-    create_folder(f"{dataset_path}/training/val")
-    create_folder(f"{dataset_path}/test")
+def create_dataset(apks, name, side, training_per, validation_per):
+    tls.create_folder(f"{DATASETS}/{name}_{timeExec}")
+    dataset_path = f"{DATASETS}/{name}_{timeExec}"
+    tls.create_folder(f"{dataset_path}/test")
+    tls.create_folder(f"{dataset_path}/training")
+    tls.create_folder(f"{dataset_path}/training/train")
+    tls.create_folder(f"{dataset_path}/training/val")
     for family in apks:
-        create_folder(f"{dataset_path}/training/val/{family}")
-        create_folder(f"{dataset_path}/training/train/{family}")
-        create_folder(f"{dataset_path}/test/{family}")
-        training = apks[family] * percentual / 100
-        validation = training * 0.20
+        tls.create_folder(f"{dataset_path}/training/val/{family}")
+        tls.create_folder(f"{dataset_path}/training/train/{family}")
+        tls.create_folder(f"{dataset_path}/test/{family}")
+        training = apks[family] * training_per / 100
+        validation = training * validation_per / 100
         training -= validation
-        side = dims
-        i = 0
-        for file in os.listdir(f"{DECOMPILED}/{family}"):
-            img = Image.open(f"{RESULTS}/{family}/{file}.png")
+        i = 1
+        image_progressing = tqdm(os.listdir(f"{DECOMPILED}/{family}"),
+                                 position=0, unit=' image', bar_format='{desc}|{bar:20}{r_bar}', leave=False)
+        for file in image_progressing:
+            image_progressing.set_description(f'Moving the file ({file[0:10]}...) of the folder ({family})')
+            img = Image.open(f"{RESULTS}/{name}/{family}/{file}.png")
             wpercent = (side / float(img.size[0]))
             hsize = int((float(img.size[1]) * float(wpercent)))
             img = img.resize((side, hsize), Image.ANTIALIAS)
@@ -29,5 +33,5 @@ def create_dataset(apks, dims, percentual):
             elif i < training:
                 img.save(f"{dataset_path}/training/train/{family}/{file}.png")
             else:
-                img.save(f"{dataset_path}/training/train/{family}/{file}.png")
+                img.save(f"{dataset_path}/test/{family}/{file}.png")
             i += 1

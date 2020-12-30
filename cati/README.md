@@ -8,47 +8,79 @@ CATI (Converter Apk To Image) is a project implemented by Christian Peluso, stud
 These instructions will get you a copy of the project up and running on your local machine for development and testing 
 purposes.
 
-- Create a virtual environment with Python3, then activate the environment and install the dependencies reported in the 
+1. Use the command git clone in your system 
+
+2. Create a virtual environment with Python, then activate the environment and install the dependencies reported in the 
 requirements file.
+   1. Windows
+    ```    
+        source venv/script/activate
+        pip install -r requirements.txt 
+   ```
+   2. Linux
+    ```    
+        source venv/bin/activate
+        pip install -r requirements.txt 
+   ```
 
-- Install [apktool](https://ibotpeaches.github.io/Apktool/install) and add the PATH to the environment variables to be able to decompile the apk.
+3. Install [apktool](https://ibotpeaches.github.io/Apktool/install) and follow the install instructions to set up 
+appropriately.
 
-- Move your apk files in the folder "sample", once there you can run `apk_decompiler.py` to extract the smali files.
+4. Use the script `install.sh` to set up the current path to the project itself.
 
-- Finally, you can run `python main.py` that will extract the OPCode from the smali files and then convert them in PNG.
+5. Move your apk files in the folder "sample", be sure to put the apks in folders named after their macro type, like this:
+
+```
+tree /cati/sample/
+|-- type1
+|   |-- application.apk
+|   |-- application2.apk
+|   `-- application3.apk
+|-- type2
+|   |-- app.apk
+|   |-- app2.apk
+|   `-- app3.apk
+`-- type3
+    |-- soft.apk
+    |-- soft2.apk
+    `-- soft3.apk
+```
+
+6. Once there you can run `python apk_decompiler.py` to extract the smali files.
+
+7. Finally, you can run `python main_cati.py` that will convert the smali files in OPCode and then convert them in 
+PNGs.
 
 ### Dependencies
 
-The project needs Python3 to be run, and it has been tested only in Windows 10.
-
-You also need to set the variable 'main_path' in utils/config.py to the full path to the repository folder on your local
-machine.
+The project needs Python3 to be run, it has been tested in Windows 10, Ubuntu and Manjaro KDE.
 
 #### External tools required for vectorization:
 
 - [GIST DESCRIPTOR](https://github.com/tuttieee/lear-gist-python)
 - [APKTOOL](https://ibotpeaches.github.io/Apktool)
 
+#### Usage
 
-#### Tips for GPU usages
+The datasets can be created with the main_cati.py script:
 
-For problems with the convolutional algorithm you should try the following code:
+See further information on the arguments required with:
 
-```python
-#TF >= 2.x
- gpus = tf.config.experimental.list_physical_devices('GPU')
- if gpus:
-     try:
-         # Currently, memory growth needs to be the same across GPUs
-         for gpu in gpus:
-             tf.config.experimental.set_memory_growth(gpu, True)
-         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-     except RuntimeError as e:
-         # Memory growth must be set before GPUs have been initialized
-         print(e)
-#Or
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.compat.v1.Session(config=config)
+```
+python main_cati.py --help
+usage: main_cati.py [-h] [-o DATASET_NAME] [-t TRAINING] [-v VALIDATION] [-i IMAGE_SIZE] [-b BATCH_SIZE] 
+                    [-i IMAGE_SIZE][--no_storage] [--no_results]
+               
+  -t TRAINING, --training TRAINING
+                        Percentage of data to be saved in training, insert a number between 10 to 90
+  -v VALIDATION, --validation VALIDATION
+                        Percentage of data to be saved in validation, insert a number between 10 to 90
+  -i IMAGE_SIZE, --image_size IMAGE_SIZE
+                        FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and Channel of the images in input default is 
+                        [250x1] (reshape will be applied)
+  -o OUTPUT_NAME, --output_name OUTPUT_NAME
+                        Enter the name by which you want to call the output
+  --no_storage          Do not create a dataset in tami/DATASETS
+  --no_results          Do nothing in results folder, so no creation of legends or images of the smali files in
+                        cati/results
 ```
