@@ -28,7 +28,7 @@ appropriately.
 
 4. Use the script `install.sh` to set up the current path to the project itself.
 
-5. Move your apk files in the folder "sample", be sure to put the apks in folders named after their macro type, like this:
+5. Move your apk files in the folder "sample", be sure to put the apks in folders named after their macro-type/classes, like this:
 
 ```
 tree /cati/sample/

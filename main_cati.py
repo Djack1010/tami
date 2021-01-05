@@ -27,10 +27,10 @@ def parse_args():
     group.add_argument('-o', '--output_name', required=False, type=str, default="data",
                        help='Enter the name by which you want to call the output')
     # FLAGS
-    group.add_argument('--no_storage', dest='storage', action='store_false',
+    group.add_argument('--no-storage', dest='storage', action='store_false',
                        help='Do not create a dataset in tami/DATASETS')
     group.set_defaults(storage=True)
-    group.add_argument('--no_results', dest='results', action='store_false',
+    group.add_argument('--no-results', dest='results', action='store_false',
                        help='Do nothing in results folder, so no creation of images or legends of the'
                             ' smali files in cati/RESULTS')
     group.set_defaults(results=True)
