@@ -62,7 +62,7 @@ if [[ $(validate_url $HARDCODED_FFTW_URL) ]]; then
     exit
   fi
 
-  echo "Installing GIST library from git reposytory and numpy as pre-requisites"
+  echo "Installing GIST library from git repository and numpy as pre-requisites"
   "${SCRIPTPATH}"/venv/bin/pip install numpy
   cd "${SCRIPTPATH}"/ext_tools || exit
   git clone "https://github.com/tuttieee/lear-gist-python.git"
