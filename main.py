@@ -32,8 +32,9 @@ def parse_args():
                        help='Name of model to store')
     group.add_argument('-l', '--load_model', required=False, type=str, default=None,
                        help='Name of model to load')
-    group.add_argument('-t', '--tuning', required=False, type=str, default=None,
-                       help='Run Keras Tuner for tuning hyperparameters, chose: [hyperband, random, bayesian]')
+    group.add_argument('-t', '--tuning', required=False, type=str, default=None, choices=['hyperband', 'random',
+                                                                                          'bayesian']
+                       help='Run Keras Tuner for tuning hyperparameters, options: [hyperband, random, bayesian]')
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
     group.add_argument('-b', '--batch_size', required=False, type=int, default=32)
@@ -43,7 +44,8 @@ def parse_args():
     group.add_argument('-w', '--weights', required=False, type=str, default=None,
                        help="If you do not want random initialization of the model weights "
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
-    group.add_argument('--mode', required=False, type=str, default='train-val',
+    group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train-val', 'train-test',
+                                                                                         'test', 'gradcam'],
                        help="Choose which mode run between 'train-val' (default), 'train-test', 'test' or 'gradcam'. "
                             "The 'train-val' mode will run a phase of training and validation on the training and "
                             "validation set, the 'train-test' mode will run a phase of training on the "
