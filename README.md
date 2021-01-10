@@ -3,8 +3,7 @@
 TAMI (Tool for Analyzing Malware represented as Images) gathers toghether the code, tools and approaches presented in some publication by 
 Giacomo Iadarola, a PhD student at IIT-CNR and University of Pisa. 
 
-If you are using this repository, please consider **citing our 
-works** (see links at the end of this README file).
+If you are using this repository, please consider [**citing our works**](#publications) (see links at the end of this README file).
 
 ## Getting Started
 
@@ -98,6 +97,7 @@ educational purposes, in order to get into the topic without making use of the K
 * **Giacomo Iadarola** - *main contributor* - [Djack1010](https://github.com/Djack1010) giacomo.iadarola(at)iit.cnr.it
 * **Christian Peluso** - *cati tool* - [1Stohk1](https://github.com/1Stohk1)
 
+<a name="publications"></a>
 If you are using this repository, please cite our work by referring to our publications (BibTex format):
 ```
 WORK IN PROGRESS...
