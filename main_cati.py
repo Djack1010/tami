@@ -90,52 +90,58 @@ if __name__ == "__main__":
                                 position=0, unit=' file', bar_format='', leave=False)
         for file in file_progressing:
             apk[family] += 1
-            if args.results:
-                file_progressing.bar_format = '{desc}|{bar:20}{r_bar}'
-                file_progressing.set_description(f'Processing the file ({file[0:10]}...) of the folder ({family})')
+            try:
+                if args.results:
+                    file_progressing.bar_format = '{desc}|{bar:20}{r_bar}'
+                    file_progressing.set_description(f'Processing the file ({file[0:10]}...) of the folder ({family})')
 
-                smali_paths = []
-                smali_folder = f"{DECOMPILED}/{family}/{file}"
-                # recursive function for the search of smali
-                for subdirectory in os.listdir(smali_folder):
-                    if "assets" not in subdirectory and "original" not in subdirectory and "res" not in \
-                            subdirectory:
-                        tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
-                if not smali_paths:
-                    # this command will remove unuseful apk
-                    subprocess.call([f'rm -r {DECOMPILED}/{family}/{file} {APK_DIR}/{family}/{file}'],
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-                else:
-                    general_content = ""
-                    smali_k = {}
-                    end = 0
-                    for smali in smali_paths:
-                        class_name = smali.replace(f'{DECOMPILED}/{family}', "")
-                        fr = open(smali, "r")
-                        encoded_content = converter.encoder(fr.read())
-                        fr.close()
+                    smali_paths = []
+                    smali_folder = f"{DECOMPILED}/{family}/{file}"
+                    if os.path.exists(f"{RESULTS}/{family}/{file}.png"):
+                        continue
+                    # recursive function for the search of smali
+                    for subdirectory in os.listdir(smali_folder):
+                        if "assets" not in subdirectory and "original" not in subdirectory and "res" not in \
+                                subdirectory:
+                            tools.find_smali(f"{smali_folder}/{subdirectory}", smali_paths)
+                    if not smali_paths:
+                        # this command will remove unuseful apk
+                        subprocess.call([f'rm -r {DECOMPILED}/{family}/{file} {APK_DIR}/{family}/{file}'],
+                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+                    else:
+                        general_content = ""
+                        smali_k = {}
+                        end = 0
+                        for smali in smali_paths:
+                            class_name = smali.replace(f'{DECOMPILED}/{family}', "")
+                            fr = open(smali, "r")
+                            encoded_content = converter.encoder(fr.read())
+                            fr.close()
 
-                        # saving number of character and encoded content
-                        num_character = len(encoded_content)
-                        smali_k[class_name] = num_character
-                        general_content += encoded_content
+                            # saving number of character and encoded content
+                            num_character = len(encoded_content)
+                            smali_k[class_name] = num_character
+                            general_content += encoded_content
 
-                    # creating the image on the whole converted text
-                    if args.channels == 1:  # greyscale
-                        img, pix_map, dim = image.img_generator(general_content, True)
-                        image.char_reader_greyscale(general_content, pix_map, dim)
-                    else:  # colorful
-                        img, pix_map, dim = image.img_generator(general_content, False)
-                        image.char_reader_colorful(general_content, pix_map, dim)
-                    img.save(f"{RESULTS}/{family}/{file}.png")
+                        # creating the image on the whole converted text
+                        if args.channels == 1:  # greyscale
+                            img, pix_map, dim = image.img_generator(general_content, True)
+                            image.char_reader_greyscale(general_content, pix_map, dim)
+                        else:  # colorful
+                            img, pix_map, dim = image.img_generator(general_content, False)
+                            image.char_reader_colorful(general_content, pix_map, dim)
+                        img.save(f"{RESULTS}/{family}/{file}.png")
 
-                    # saving the png with the class division
-                    img, pix_map, dim = image.legend_image_generator(len(general_content))
-                    image.legend_pixel_generator(smali_k, pix_map, dim)
-                    img.save(f"{RESULTS}/{family}/{file}_class.png")
+                        # saving the png with the class division
+                        img, pix_map, dim = image.legend_image_generator(len(general_content))
+                        image.legend_pixel_generator(smali_k, pix_map, dim)
+                        img.save(f"{RESULTS}/{family}/{file}_class.png")
 
-                    # saving the legend of the classes in the image
-                    tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", image.legend_of_image(dim, smali_k))
+                        # saving the legend of the classes in the image
+                        tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", image.legend_of_image(dim, smali_k))
+            except RecursionError:
+                print(f"Catched RecursionError for {DECOMPILED}/{family}/{file}, continue...")
+                continue
     if args.results:
         print('Creation of the images completed')
 
