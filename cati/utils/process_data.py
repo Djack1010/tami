@@ -18,7 +18,7 @@ def create_dataset(apks, name, side, training_per, validation_per):
         tls.create_folder(f"{dataset_path}/test/{family}")
         training = apks[family] * training_per / 100
         validation = training * validation_per / 100
-        training -= validation
+        # training -= validation
         i = 1
         image_progressing = tqdm(os.listdir(f"{DECOMPILED}/{family}"),
                                  position=0, unit=' image', bar_format='{desc}|{bar:20}{r_bar}', leave=False)
