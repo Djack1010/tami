@@ -1,6 +1,7 @@
 from tensorflow.keras.layers import Dense, Flatten, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import vgg16
+from tensorflow.keras.metrics import Precision, Recall, AUC
 
 
 class VGG16_19:
@@ -45,5 +46,6 @@ class VGG16_19:
 
         model = Model(input_layer, output)
         # model.summary(line_length=50)
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+        model.compile(loss='categorical_crossentropy', optimizer='adam',
+                      metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
         return model
