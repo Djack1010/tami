@@ -33,7 +33,7 @@ def parse_args():
     group.add_argument('-l', '--load_model', required=False, type=str, default=None,
                        help='Name of model to load')
     group.add_argument('-t', '--tuning', required=False, type=str, default=None, choices=['hyperband', 'random',
-                                                                                          'bayesian']
+                                                                                          'bayesian'],
                        help='Run Keras Tuner for tuning hyperparameters, options: [hyperband, random, bayesian]')
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
