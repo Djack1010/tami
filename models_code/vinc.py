@@ -10,6 +10,7 @@ class VINC:
         self.num_classes = num_classes
         self.input_width_height = img_size
         self.channels = channels
+        self.input_type = 'images'
 
     def build(self):
         model = models.Sequential()
