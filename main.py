@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 from models_code.basic_CNN import BasicCNN as b_cnn
 from models_code.basic_MLP import BasicMLP as b_mlp
+from models_code.basic_LSTM import BasicLSTM as b_lstm
 from models_code.nedo import NEDO
 from models_code.vinc import VINC
 from models_code.VGG16 import VGG16_19
@@ -103,6 +104,8 @@ def _model_selection(model_choice, nclasses):
         mod_class = b_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
     elif model_choice == "BASIC_MLP":
         mod_class = b_mlp(nclasses, config.VECTOR_DIM)
+    elif model_choice == "BASIC_LSTM":
+        mod_class = b_lstm(nclasses, config.VECTOR_DIM)
     elif model_choice == "NEDO":
         mod_class = NEDO(nclasses, config.IMG_DIM, config.CHANNELS)
     elif model_choice == "VINC":
