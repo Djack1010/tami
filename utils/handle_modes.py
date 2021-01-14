@@ -180,7 +180,7 @@ def train_val(arguments, model, ds_info):
     train_results = model.fit(x=train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
                               validation_data=val_ds, callbacks=[tensorboard_callback_fit])
 
-    print_log("\ttrain_loss: {} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
+    print_log("\ttrain_loss:{} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
               "\tval_loss:{} \n\tval_acc:{} \n\tval_prec:{} \n\tval_rec:{}"
               .format(train_results.history['loss'], train_results.history['prec'], train_results.history['rec'],
                       train_results.history['acc'],
@@ -211,7 +211,7 @@ def train_test(arguments, model, class_info, ds_info):
     start_training = time.perf_counter()
     final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs)
     end_training = time.perf_counter()
-    print_log("\ttrain_loss: {} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
+    print_log("\ttrain_loss:{} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
               .format(final_train_results.history['loss'], final_train_results.history['prec'],
                       final_train_results.history['rec'], final_train_results.history['acc']))
     print_log("FINAL TRAINING TIME: {} ".format(str(datetime.timedelta(seconds=end_training - start_training))))
@@ -241,14 +241,14 @@ def test(arguments, model, class_info, ds_info):
     # Test the trained model over the test set
     print_log('Start Test', print_on_screen=True)
     results = model.evaluate(test_ds)
-    print_log("\ttest loss: {} \n\ttest accuracy: {}".format(results[0], results[1]), print_on_screen=True)
-    print_log("\tPrec: {} \n\tRecall: {}".format(results[2], results[3]), print_on_screen=True)
+    print_log("\ttest loss:{} \n\ttest accuracy:{}".format(results[0], results[1]), print_on_screen=True)
+    print_log("\tPrec:{} \n\tRecall:{}".format(results[2], results[3]), print_on_screen=True)
     try:
         # F-measure calculated as (2 * Prec * Recall)/(Prec + Recall)
-        print_log("\tF-Measure: {} \n\tAUC: {}"
+        print_log("\tF-Measure:{} \n\tAUC:{}"
                   .format((2 * results[2] * results[3]) / (results[2] + results[3]), results[4]), print_on_screen=True)
     except ZeroDivisionError:
-        print_log("\tF-Measure: {} \n\tAUC: {}"
+        print_log("\tF-Measure:{} \n\tAUC:{}"
                   .format("Error", results[4]), print_on_screen=True)
 
     # TODO: split evaluation and prediction in two phases -> at the moment, the test set is first used by model.evaluate
