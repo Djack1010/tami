@@ -100,5 +100,21 @@ educational purposes, in order to get into the topic without making use of the K
 <a name="publications"></a>
 If you are using this repository, please cite our work by referring to our publications (BibTex format):
 ```
-WORK IN PROGRESS...
+@article{iadarola2021towards,
+  title={Towards an Interpretable Deep Learning Model for Mobile Malware Detection and Family Identification},
+  author={Iadarola, Giacomo and Martinelli, Fabio and Mercaldo, Francesco and Santone, Antonella},
+  journal={Computers \& Security},
+  pages={102198},
+  year={2021},
+  publisher={Elsevier}
+}
+
+@inproceedings{iadarola2020evaluating,
+  title={Evaluating Deep Learning Classification Reliability in Android Malware Family Detection},
+  author={Iadarola, Giacomo and Martinelli, Fabio and Mercaldo, Francesco and Santone, Antonella},
+  booktitle={2020 IEEE International Symposium on Software Reliability Engineering Workshops (ISSREW)},
+  pages={255--260},
+  year={2020},
+  organization={IEEE}
+}
 ```
