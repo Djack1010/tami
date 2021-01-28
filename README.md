@@ -5,6 +5,12 @@ Giacomo Iadarola, a PhD student at IIT-CNR and University of Pisa.
 
 If you are using this repository, please consider [**citing our works**](#publications) (see links at the end of this README file).
 
+### Sub-repositories
+
+List of other repositories related to this one, specifically created for a project/work/paper and containing only a subset of files, the necessary ones.
+
+* [Towards Interpretable DL Models](https://github.com/Djack1010/towards_interpretable_DL_models)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing 
@@ -37,7 +43,9 @@ The DL models can be run with the `main.py` scripts:
 See further information on the arguments required with:
 ```
 python main.py --help
-usage: main.py [-h] -m MODEL -d DATASET [-o OUTPUT_MODEL] [-l LOAD_MODEL] [-t TUNING] [-e EPOCHS] [-b BATCH_SIZE] [-i IMAGE_SIZE] [-w WEIGHTS] [--mode MODE] [--exclude_top]
+usage: main.py [-h] -m {DATA,BASIC_CNN,BASIC_LSTM,BASIC_MLP,NEDO,VINC,VGG16} -d DATASET [-o OUTPUT_MODEL] 
+               [-l LOAD_MODEL] [-t {hyperband,random,bayesian}] [-e EPOCHS] [-b BATCH_SIZE] [-i IMAGE_SIZE] 
+               [-w WEIGHTS] [--mode {train-val,train-test,test,gradcam-cati,gradcam-only}] [--exclude_top] 
                [--caching]
 
 Deep Learning Image-based Malware Classification
@@ -46,27 +54,35 @@ optional arguments:
   -h, --help            show this help message and exit
 
 Arguments:
-  -m MODEL, --model MODEL
-                        DATA, BASIC, NEDO or VGG16
+  -m {DATA,BASIC_CNN,BASIC_LSTM,BASIC_MLP,NEDO,VINC,VGG16}, --model {DATA,BASIC_CNN,BASIC_LSTM,BASIC_MLP,NEDO,VINC,VGG16}
+                        Choose the model to use between the ones implemented
   -d DATASET, --dataset DATASET
-                        the dataset path, must have the folder structure: training/train, training/val and test,in each of this folders, one folder per class (see
-                        dataset_test)
+                        the dataset path, must have the folder structure: training/train, training/val and test,
+                        in each of this folders, one folder per class (see dataset_test)
   -o OUTPUT_MODEL, --output_model OUTPUT_MODEL
                         Name of model to store
   -l LOAD_MODEL, --load_model LOAD_MODEL
                         Name of model to load
-  -t TUNING, --tuning TUNING
-                        Run Keras Tuner for tuning hyperparameters, chose: [hyperband, random, bayesian]
+  -t {hyperband,random,bayesian}, --tuning {hyperband,random,bayesian}
+                        Run Keras Tuner for tuning hyperparameters, options: [hyperband, random, bayesian]
   -e EPOCHS, --epochs EPOCHS
                         number of epochs
   -b BATCH_SIZE, --batch_size BATCH_SIZE
   -i IMAGE_SIZE, --image_size IMAGE_SIZE
-                        FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input (reshape will be applied)
+                        FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input 
+                        (reshape will be applied)
   -w WEIGHTS, --weights WEIGHTS
-                        If you do not want random initialization of the model weights (ex. 'imagenet' or path to weights to be loaded), not available for all models!
-  --mode MODE           Choose which mode run between 'train-val' (default), 'train-test', 'test' or 'gradcam'. The 'train-val' mode will run a phase of training and
-                        validation on the training and validation set, the 'train-test' mode will run a phase of training on the training+validation sets and then test on
-                        the test set, the 'test' mode will run only a phase of test on the test set. The 'gradcam' will run the gradcam analysis on the modelprovided.
+                        If you do not want random initialization of the model weights (ex. 'imagenet' or path 
+                        to weights to be loaded), not available for all models!
+  --mode {train-val,train-test,test,gradcam-cati,gradcam-only}
+                        Choose which mode run between 'train-val' (default), 'train-test', 'test' or 'gradcam'. 
+                        The 'train-val' mode will run a phase of training and validation on the training and 
+                        validation set, the 'train-test' mode will run a phase of training on the training+validation 
+                        sets and then test on the test set, the 'test' mode will run only a phase of test on 
+                        the test set. The 'gradcam-[cati|only]' will run the gradcam analysis on the model provided. 
+                        'gradcam-only' will generate the heatmaps only, while 'gradcam-cati will also run 
+                        the cati tool to reverse process and select the code from the heatmap to the decompiled 
+                        smali (if provided, see cati README)
   --exclude_top         Exclude the fully-connected layer at the top of the network (default INCLUDE)
   --caching             Caching dataset on file and loading per batches (IF db too big for memory)
 ```
