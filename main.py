@@ -23,7 +23,7 @@ def parse_args():
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'BASIC_CNN', 'BASIC_LSTM',
                                                                           'BASIC_MLP', 'NEDO', 'VINC', 'VGG16'],
-                       help='DATA, BASIC_[CNN|LSTM|MLP], NEDO or VGG16')
+                       help='Choose the model to use between the ones implemented')
     group.add_argument('-d', '--dataset', required=True, type=str,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
                             'in each of this folders, one folder per class (see dataset_test)')
@@ -187,7 +187,6 @@ if __name__ == '__main__':
                 print("ERROR: {}".format(e))
                 print("NB. check if image size is big enough (usually, at least 25x1)")
                 exit()
-
 
         # Modes which required a training phase
         if args.mode == 'train-val':

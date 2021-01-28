@@ -151,6 +151,7 @@ def initialization(arguments, class_info, ds_info, model_class):
         print("POSSIBLE FIX: run 'python main.py -m DATA -d {}'".format(arguments.dataset))
         exit()
 
+
 def train_val(arguments, model, ds_info):
 
     # Create tf.Dataset from ds_info e filepaths
