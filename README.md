@@ -10,6 +10,7 @@ If you are using this repository, please consider [**citing our works**](#public
 List of other repositories related to this one, specifically created for a project/work/paper and containing only a subset of files, the necessary ones.
 
 * [Towards Interpretable DL Models](https://github.com/Djack1010/towards_interpretable_DL_models)
+* [Semi-Automated Explainability-Driven Approach for Malware Analysis](https://github.com/Djack1010/malware_img2smali)
 
 ## Getting Started
 
