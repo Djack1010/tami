@@ -10,6 +10,7 @@ If you are using this repository, please consider [**citing our works**](#public
 List of other repositories related to this one, specifically created for a project/work/paper and containing only a subset of files, the necessary ones.
 
 * [Towards Interpretable DL Models](https://github.com/Djack1010/towards_interpretable_DL_models)
+* [Semi-Automated Explainability-Driven Approach for Malware Analysis](https://github.com/Djack1010/malware_img2smali)
 
 ## Getting Started
 
@@ -134,3 +135,9 @@ If you are using this repository, please cite our work by referring to our publi
   organization={IEEE}
 }
 ```
+
+#### Acknowledgements
+
+The authors would like to thank the 'Trust, Security and Privacy' research group within the [Institute of Informatics and Telematics](https://www.iit.cnr.it/) (CNR - Pisa, Italy), that support their researches.
+
+The Grad-CAM code is based on the work of Adrian Rosebrock available [here](https://www.pyimagesearch.com/2020/03/09/grad-cam-visualize-class-activation-maps-with-keras-tensorflow-and-deep-learning/).
