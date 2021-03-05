@@ -28,7 +28,7 @@ fastavro==1.1.0
 fasteners==0.15
 future==0.18.2
 gast==0.3.3
-gist==0.5
+gist
 google-api-core==1.23.0
 google-api-python-client==1.12.5
 google-apitools==0.5.31
@@ -61,8 +61,8 @@ idna==2.8
 imutils==0.5.3
 ipaddr==2.2.0
 ipykernel==5.3.4
-ipython==7.19.0
-ipython-genutils==0.2.0
+ipython
+ipython-genutils
 ipywidgets==7.5.1
 jedi==0.17.2
 Jinja2==2.11.2
@@ -147,7 +147,7 @@ tfx-bsl==0.25.0
 threadpoolctl==2.1.0
 tornado==6.1
 tqdm==4.51.0
-traitlets==5.0.5
+traitlets
 typing-extensions==3.7.4.3
 typing-inspect==0.6.0
 uritemplate==3.0.1
