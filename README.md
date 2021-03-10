@@ -15,7 +15,7 @@ List of other repositories related to this one, specifically created for a proje
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing 
-purposes.
+purposes. If you want to run experiments on the GPU, take a look at the section [Run in Docker container](#run_docker) 
 
 ### Dependencies
 
@@ -25,6 +25,19 @@ You can run the script `install.sh` to set up all the necessary dependencies (ex
 Then, you should install all the necessary libraries with `pip`
 ```
 pip install -r requirements.txt 
+```
+
+##### Run in Docker container (Suggested for eperimenting on GPU)
+<a name="run_docker"></a>
+
+You can run TAMI in a container built upon the `tensorflow/tensorflow:latest-gpu` image. This is strongly suggested for handling dependencies related to GPU drivers, because you only need to install [Docker](https://docs.docker.com/install/) and the [NVIDIA Docker support](https://github.com/NVIDIA/nvidia-docker) to make it work the Tensorflow GPU support (see also [Tensorflow Docker Requirements](https://www.tensorflow.org/install/docker) instructions).
+
+In the `docker/` folder of this repositories, there is a Dockerfile which build the image and install the requirements for TAMI, and two scripts (`build.sh` and `run_container.sh`) to handle the docker operations.
+
+```
+cd docker
+./build.sh
+./run_container.sh
 ```
 
 #### External tools required for vectorization:
