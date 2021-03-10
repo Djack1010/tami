@@ -1,7 +1,7 @@
 import time
 
-# MAIN Absolute Path
-main_path = ""
+# MAIN Absolute Path, set at runtime
+main_path = None
 # Timestamp Execution
 timeExec = "{}".format(time.strftime("%d%m_%H%M%S"))
 

@@ -120,6 +120,11 @@ def _model_selection(model_choice, nclasses):
 
 
 if __name__ == '__main__':
+    # SET main_path at runtime with the absolute path of the project root folder
+    path_list = os.path.realpath(__file__).split("/")[:-1]
+    config.main_path = '/'.join(path_list) + '/'
+
+    # START time and parse/check arguments
     start = time.perf_counter()
     args = parse_args()
     _check_args(args)
