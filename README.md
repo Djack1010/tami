@@ -11,6 +11,7 @@ List of other repositories related to this one, specifically created for a proje
 
 * [Towards Interpretable DL Models](https://github.com/Djack1010/towards_interpretable_DL_models)
 * [Semi-Automated Explainability-Driven Approach for Malware Analysis](https://github.com/Djack1010/malware_img2smali)
+* [Perturbation of Image-based Malware Detectionwith Smali level morphing techniques](https://github.com/AzraelSec/nedo)
 
 ## Getting Started
 
