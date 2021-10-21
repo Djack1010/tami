@@ -27,6 +27,25 @@ def decode_img(img):
 
 
 def process_path(file_path, model_input='images', data_type='images'):
+    """Get file in file_path and covert to input format required
+
+    Parameters
+    ----------
+    file_path : str
+        The file location of the input sample
+    model_input : str, optional
+        The data input type required by this execution
+    data_type : str, optional
+        The data input type of the actual dataset
+
+    Returns
+    -------
+    img : object
+        the input sample converted to the required format
+    label : float
+        one-hot encode label of the input sample
+    """
+
     label = get_label(file_path)
     # load the raw data from the file as a string
     img = tf.io.read_file(file_path)
