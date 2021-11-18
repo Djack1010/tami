@@ -119,7 +119,7 @@ def apply_gradcam(arguments, model, class_info, cati=True):
         # Get all file paths in 'label_path' for the class 'label'
         files = [i[2] for i in os.walk(label_path)]
 
-        num_samples = 50
+        num_samples = 50 if len(files[0]) > 50 else len(files[0]) - 10 if len(files[0]) > 10 else 5
 
         # Randomly extract 'num_sample' from the file paths, in files there is a [[files_paths1, filepath2,...]]
         imgs = random.sample(files[0], num_samples)
@@ -137,9 +137,10 @@ def apply_gradcam(arguments, model, class_info, cati=True):
         for i in tqdm(range(num_samples)):
             complete_path = label_path + "/" + imgs[i]
             img_filename = imgs[i].split(".")[0]
-            # CHECK if varieties info are stored in filename
+
+            # REPLACE _ with -, which may cause some problem for hardcoded format search
             if "_" in img_filename:
-                img_filename = img_filename.split('_')[2]
+                img_filename = img_filename.replace('_', '-')
 
             # load the original image from disk (in OpenCV format) and then
             # resize the image to its target dimensions
