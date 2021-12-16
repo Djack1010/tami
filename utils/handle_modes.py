@@ -207,6 +207,9 @@ def train_val(arguments, model, ds_info):
                       train_results.history['val_loss'], train_results.history['val_acc'],
                       train_results.history['val_prec'], train_results.history['val_rec']))
 
+    if arguments.output_model is not None:
+        save_model(arguments, model)
+
     del train_ds, val_ds
 
 
@@ -237,6 +240,9 @@ def train_test(arguments, model, class_info, ds_info):
     print_log("FINAL TRAINING TIME: {} ".format(str(datetime.timedelta(seconds=end_training - start_training))))
 
     del fin_train_ds
+
+    if arguments.output_model is not None:
+        save_model(arguments, model)
 
     # Test the trained model over the test set
     test(arguments, model, class_info, ds_info)

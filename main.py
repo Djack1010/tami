@@ -201,9 +201,6 @@ if __name__ == '__main__':
         elif args.mode == 'test':
             modes.test(args, model, class_info, ds_info)
 
-        if args.output_model is not None:
-            modes.save_model(args, model)
-
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
     end = time.perf_counter()
