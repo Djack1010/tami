@@ -33,7 +33,7 @@ class VINC:
         model.add(layers.Dropout(0.5))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer='adam', run_eagerly=True,
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model
@@ -59,7 +59,7 @@ class VINC:
         model.add(layers.Dense(self.num_classes, activation='softmax'))
         # activation=hp.Choice('act_1', ['relu', 'tanh'])
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer='adam', run_eagerly=True,
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model
