@@ -131,6 +131,24 @@ educational purposes, in order to get into the topic without making use of the K
 <a name="publications"></a>
 If you are using this repository, please cite our work by referring to our publications (BibTex format):
 ```
+@inproceedings{iadarola2021semi,
+  title={A Semi-Automated Explainability-Driven Approach for Malware Analysis through Deep Learning},
+  author={Iadarola, Giacomo and Casolare, Rosangela and Martinelli, Fabio and Mercaldo, Francesco and Peluso, Christian and Santone, Antonella},
+  booktitle={2021 International Joint Conference on Neural Networks (IJCNN)},
+  pages={1--8},
+  year={2021},
+  organization={IEEE}
+}
+
+@inproceedings{gerardi2021perturbation,
+  title={Perturbation of Image-based Malware Detection with Smali level morphing techniques},
+  author={Gerardi, Federico and Iadarola, Giacomo and Martinelli, Fabio and Santone, Antonella and Mercaldo, Francesco},
+  booktitle={2021 IEEE Intl Conf on Parallel \& Distributed Processing with Applications, Big Data \& Cloud Computing, Sustainable Computing \& Communications, Social Computing \& Networking (ISPA/BDCloud/SocialCom/SustainCom)},
+  pages={1651--1656},
+  year={2021},
+  organization={IEEE}
+}
+
 @article{iadarola2021towards,
   title={Towards an Interpretable Deep Learning Model for Mobile Malware Detection and Family Identification},
   author={Iadarola, Giacomo and Martinelli, Fabio and Mercaldo, Francesco and Santone, Antonella},
@@ -138,15 +156,6 @@ If you are using this repository, please cite our work by referring to our publi
   pages={102198},
   year={2021},
   publisher={Elsevier}
-}
-
-@inproceedings{iadarola2020evaluating,
-  title={Evaluating Deep Learning Classification Reliability in Android Malware Family Detection},
-  author={Iadarola, Giacomo and Martinelli, Fabio and Mercaldo, Francesco and Santone, Antonella},
-  booktitle={2020 IEEE International Symposium on Software Reliability Engineering Workshops (ISSREW)},
-  pages={255--260},
-  year={2020},
-  organization={IEEE}
 }
 ```
 
