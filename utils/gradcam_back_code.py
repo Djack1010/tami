@@ -104,7 +104,14 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             print(f"ERROR! cati db with smali class info not found in {cati_path_base}, exiting...")
             exit()
 
+    # create folder in /results/images for this execution
+    os.mkdir(config.main_path + 'results/images/' + config.timeExec)
+
+    index = 0
     for img_class in class_info["class_names"]:
+
+        index += 1
+        print(f"GradCAM on call family '{img_class}' - {index} out of {len(class_info['class_names'])}")
 
         # Adding also a '/' to ensure path correctness
         label_path = config.main_path + arguments.dataset + "/test/" + img_class
@@ -124,15 +131,14 @@ def apply_gradcam(arguments, model, class_info, cati=True):
         # Randomly extract 'num_sample' from the file paths, in files there is a [[files_paths1, filepath2,...]]
         imgs = random.sample(files[0], num_samples)
 
-        # create folder in /results/images for this class
-        if not os.path.isdir(config.main_path + 'results/images/' + img_class):
-            os.mkdir(config.main_path + 'results/images/' + img_class)
-            os.mkdir(config.main_path + 'results/images/' + img_class + '/heatmap')
-            os.mkdir(config.main_path + 'results/images/' + img_class + '/complete')
-            os.mkdir(config.main_path + 'results/images/' + img_class + '/highlights_heatmap')
-            os.mkdir(config.main_path + 'results/images/' + img_class + '/smali')
-
-        result_images_path = config.main_path + 'results/images/' + img_class
+        # create folder in /results/images/<config.timeExec> for this class
+        result_images_path = config.main_path + 'results/images/' + config.timeExec + '/' + img_class
+        if not os.path.isdir(result_images_path):
+            os.mkdir(result_images_path)
+            os.mkdir(result_images_path + '/heatmap')
+            os.mkdir(result_images_path + '/complete')
+            os.mkdir(result_images_path + '/highlights_heatmap')
+            os.mkdir(result_images_path + '/smali')
 
         for i in tqdm(range(num_samples)):
             complete_path = label_path + "/" + imgs[i]
