@@ -9,6 +9,19 @@ from utils.analyzing_data import multiclass_analysis
 import pickle
 import cv2
 import numpy as np
+import gc
+from tensorflow.keras import backend as k
+from tensorflow.keras.callbacks import Callback
+
+
+class ClearMemory(Callback):
+    """
+    Callback to reduce memory leaks in training.
+    thanks to https://github.com/tensorflow/tensorflow/issues/31312#issuecomment-821809246
+    """
+    def on_epoch_end(self, epoch, logs=None):
+        gc.collect()
+        k.clear_session()
 
 
 def get_label(file_path):
@@ -198,7 +211,7 @@ def train_val(arguments, model, ds_info):
     tensorboard_callback_fit = tf.keras.callbacks.TensorBoard(log_dir=log_fit, histogram_freq=1)
 
     train_results = model.fit(x=train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
-                              validation_data=val_ds, callbacks=[tensorboard_callback_fit])
+                              validation_data=val_ds, callbacks=[tensorboard_callback_fit, ClearMemory()])
 
     print_log("\ttrain_loss:{} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
               "\tval_loss:{} \n\tval_acc:{} \n\tval_prec:{} \n\tval_rec:{}"
@@ -232,7 +245,8 @@ def train_test(arguments, model, class_info, ds_info):
     # Train the model over the entire total_training set and then test
     print_log('Start Final Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
     start_training = time.perf_counter()
-    final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs)
+    final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
+                                    callbacks=[ClearMemory()])
     end_training = time.perf_counter()
     print_log("\ttrain_loss:{} \n\ttrain_acc:{} \n\ttrain_prec:{} \n\ttrain_rec:{} \n"
               .format(final_train_results.history['loss'], final_train_results.history['prec'],
@@ -278,8 +292,8 @@ def test(arguments, model, class_info, ds_info):
                   .format("Error", results[4]), print_on_screen=True)
 
     # TODO: split evaluation and prediction in two phases -> at the moment, the test set is first used by model.evaluate
-    # to get cumulative information, and then is again used by model.predict to get per class information, thus, the
-    # test process is repeated two times!
+    #  to get cumulative information, and then is again used by model.predict to get per class information, thus, the
+    #  test process is repeated two times!
     print("Calculating performances per class, it may take a while...")
     cm, results_classes, to_print = multiclass_analysis(model, test_ds, class_info['class_names'],
                                                         save_fig=config.main_path + "results/figures/CM_{}"

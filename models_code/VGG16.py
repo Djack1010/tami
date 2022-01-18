@@ -46,6 +46,6 @@ class VGG16_19:
 
         model = Model(input_layer, output)
         # model.summary(line_length=50)
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer='adam', run_eagerly=True,
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
         return model

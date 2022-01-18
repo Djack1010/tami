@@ -29,7 +29,7 @@ class NEDO:
         model.add(layers.Dense(512, activation='relu'))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer='adam', run_eagerly=True,
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model
