@@ -59,9 +59,12 @@ def parse_args():
     group.add_argument('--exclude_top', dest='include_top', action='store_false',
                        help='Exclude the fully-connected layer at the top of the network (default INCLUDE)')
     group.set_defaults(include_top=True)
-    group.add_argument('--caching', dest='caching', action='store_true',
+    group.add_argument('--no-caching', dest='caching', action='store_false',
                        help='Caching dataset on file and loading per batches (IF db too big for memory)')
-    group.set_defaults(caching=False)
+    group.set_defaults(caching=True)
+    group.add_argument('--no-classes', dest='classAnalysis', action='store_false',
+                       help='In case of mode including test, skip results for each class (only cumulative results)')
+    group.set_defaults(classAnalysis=True)
     arguments = parser.parse_args()
     return arguments
 
