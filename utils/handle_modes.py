@@ -292,8 +292,8 @@ def test(arguments, model, class_info, ds_info):
                   .format("Error", results[4]), print_on_screen=True)
 
     # TODO: split evaluation and prediction in two phases -> at the moment, the test set is first used by model.evaluate
-    # to get cumulative information, and then is again used by model.predict to get per class information, thus, the
-    # test process is repeated two times!
+    #  to get cumulative information, and then is again used by model.predict to get per class information, thus, the
+    #  test process is repeated two times!
     print("Calculating performances per class, it may take a while...")
     cm, results_classes, to_print = multiclass_analysis(model, test_ds, class_info['class_names'],
                                                         save_fig=config.main_path + "results/figures/CM_{}"
