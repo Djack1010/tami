@@ -3,9 +3,9 @@ from tensorflow.keras import models
 from tensorflow.keras.metrics import Precision, Recall, AUC
 
 
-class BasicMLP:
+class StandardMLP:
 
-    def __init__(self, num_classes, vector_size, name="basic"):
+    def __init__(self, num_classes, vector_size, name="MLP"):
         self.name = name
         self.num_classes = num_classes
         self.vector_size = vector_size

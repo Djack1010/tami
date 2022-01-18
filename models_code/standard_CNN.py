@@ -3,9 +3,9 @@ from tensorflow.keras import models
 from tensorflow.keras.metrics import Precision, Recall, AUC
 
 
-class BasicCNN:
+class StandardCNN:
 
-    def __init__(self, num_classes, img_size, channels, name="basic"):
+    def __init__(self, num_classes, img_size, channels, name="CNN"):
         self.name = name
         self.num_classes = num_classes
         self.input_width_height = img_size

@@ -369,6 +369,10 @@ def load_weights(arguments, model):
 
 def tuning(arguments, model_class, ds_info):
 
+    if not hasattr(model_class, 'build_tuning'):
+        print(f"Class '{model_class.name}' has not method 'build_tuning', exiting...")
+        exit()
+
     # Create tf.Dataset from ds_info e filepaths
     train_paths_ds, val_paths_ds = get_ds('train_paths', ds_info), get_ds('val_paths', ds_info)
 

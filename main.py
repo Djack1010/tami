@@ -3,10 +3,10 @@ import datetime
 import re
 import os
 import tensorflow as tf
-from models_code.basic_CNN import BasicCNN as b_cnn
-from models_code.basic_MLP import BasicMLP as b_mlp
-from models_code.nedo import NEDO
-from models_code.vinc import VINC
+from models_code.standard_CNN import StandardCNN as b_cnn
+from models_code.standard_MLP import StandardMLP as b_mlp
+from models_code.Le_Net_CNN import LeNet as lenet_cnn
+from models_code.Alex_Net_CNN import AlexNet as alexnet_cnn
 from models_code.VGG16 import VGG16_19
 from utils import config
 import time
@@ -21,8 +21,8 @@ def parse_args():
         description='Deep Learning Image-based Malware Classification')
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
-    group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'BASIC_CNN', 'BASIC_LSTM',
-                                                                          'BASIC_MLP', 'NEDO', 'VINC', 'VGG16'],
+    group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'STANDARD_CNN', 'ALEX_NET',
+                                                                          'BASIC_LSTM', 'STANDARD_MLP', 'VGG16'],
                        help='Choose the model to use between the ones implemented')
     group.add_argument('-d', '--dataset', required=True, type=str,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
@@ -97,14 +97,14 @@ def _check_args(arguments):
 def _model_selection(model_choice, nclasses):
     print("INITIALIZING MODEL")
     mod_class = None
-    if model_choice == "BASIC_CNN":
+    if model_choice == "STANDARD_CNN":
         mod_class = b_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
     elif model_choice == "BASIC_MLP":
         mod_class = b_mlp(nclasses, config.VECTOR_DIM)
-    elif model_choice == "NEDO":
-        mod_class = NEDO(nclasses, config.IMG_DIM, config.CHANNELS)
-    elif model_choice == "VINC":
-        mod_class = VINC(nclasses, config.IMG_DIM, config.CHANNELS)
+    elif model_choice == "LE_NET":
+        mod_class = lenet_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
+    elif model_choice == "ALEX_NET":
+        mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
     elif model_choice == "VGG16":
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
