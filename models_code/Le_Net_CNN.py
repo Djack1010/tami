@@ -28,7 +28,9 @@ class LeNet:
         model.add(layers.Dense(84, activation='tanh'))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
 
-        model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', run_eagerly=True,
+        model.compile(loss='categorical_crossentropy', optimizer='adam', run_eagerly=True,
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
+
+        model.summary()
 
         return model

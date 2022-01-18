@@ -38,7 +38,7 @@ def parse_args():
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
     group.add_argument('-b', '--batch_size', required=False, type=int, default=32)
-    group.add_argument('-i', '--image_size', required=False, type=str, default="250x1",
+    group.add_argument('-i', '--image_size', required=False, type=str, default="100x1",
                        help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input '
                             '(reshape will be applied)')
     group.add_argument('-w', '--weights', required=False, type=str, default=None,
