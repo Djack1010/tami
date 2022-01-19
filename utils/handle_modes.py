@@ -204,7 +204,7 @@ def train_val(arguments, model, ds_info):
     train_ds, val_ds = prepare_ds(arguments.caching, lab_train_ds, "train", arguments.batch_size),\
                        prepare_ds(arguments.caching, lab_val_ds, "val", arguments.batch_size)
 
-    print_log('Start Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
+    print_log(f"Start Training of {model.name} for {arguments.epochs} epochs  ", print_on_screen=True)
 
     # Initialize callbacks for Tensorboard
     log_fit = config.main_path + "results/tensorboard/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -243,7 +243,7 @@ def train_test(arguments, model, class_info, ds_info):
     fin_train_ds = prepare_ds(arguments.caching, lab_final_train_ds, "fin_tr", arguments.batch_size)
 
     # Train the model over the entire total_training set and then test
-    print_log('Start Final Training for {} epochs  '.format(arguments.epochs), print_on_screen=True)
+    print_log(f"Start Final Training of {model.name} for {arguments.epochs} epochs  ", print_on_screen=True)
     start_training = time.perf_counter()
     final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
                                     callbacks=[ClearMemory()])
@@ -279,7 +279,7 @@ def test(arguments, model, class_info, ds_info):
     test_ds = prepare_ds(arguments.caching, lab_test_ds, "test", 1)
 
     # Test the trained model over the test set
-    print_log('Start Test', print_on_screen=True)
+    print_log(f'Start Test of {model.name}', print_on_screen=True)
     results = model.evaluate(test_ds)
     print_log("\ttest loss:{} \n\ttest accuracy:{}".format(results[0], results[1]), print_on_screen=True)
     print_log("\tPrec:{} \n\tRecall:{}".format(results[2], results[3]), print_on_screen=True)
