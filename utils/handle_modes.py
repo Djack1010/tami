@@ -153,34 +153,31 @@ def initialization(arguments, class_info, ds_info, model_class):
 
         # Print information on log
         # EXECUTION Info
-        mode_info = "load_model = {}".format(arguments.load_model) if arguments.load_model is not None \
+        mode_info = f"load_model = {arguments.load_model}" if arguments.load_model is not None \
             else \
-            "tuning = {}".format(arguments.tuning) if arguments.tuning is not None else "mode = {}".format(arguments.mode)
-        print_log("INFO EXECUTION:"
-                  "\n{}\nmodel = {}\ndataset = {}"
-                  "\noutput_model = {}\nepochs = {}\nbatch_size = {}\ncaching = {}"
-                  "\nmodel_input_type = {}"
-                  "\n----------------"
-                  .format(mode_info, arguments.model, arguments.dataset,
-                          arguments.output_model, arguments.epochs, arguments.batch_size, arguments.caching,
-                          config.DATA_REQ))
+            f"tuning = {arguments.tuning}" if arguments.tuning is not None else f"mode = {arguments.mode}"
+        print_log(f"INFO EXECUTION:"
+                  f"\n{mode_info}\nmodel = {arguments.model}\ndataset = {arguments.dataset}"
+                  f"\noutput_model = {arguments.output_model}\nepochs = {arguments.epochs}"
+                  f"\nbatch_size = {arguments.batch_size}\ncaching = {arguments.caching}"
+                  f"\nresults per class = {arguments.classAnalysis}"
+                  f"\nmodel_input_type = {config.DATA_REQ}"
+                  f"\n----------------")
 
         # DATA Info
-        print_log("INFO DATA:"
-                  "\nnum_classes = {}\nclass_names= {}\nSize train-val-test= {}-{}-{}"
-                  "\ndata_type = {}\nsize_{}"
-                  .format(nclasses, class_names, size_train, size_val, size_test,
-                          ds_info['ds_type'], "img = {}x{}".format(config.IMG_DIM, config.CHANNELS)
-                                            if config.DATA_REQ == "images" else "vec = {}".format(config.VECTOR_DIM)))
+        print_log(f"INFO DATA:"
+                  f"\nnum_classes = {nclasses}\nclass_names= {class_names}"
+                  f"\nSize train-val-test= {size_train}-{size_val}-{size_test}"
+                  f"\ndata_type = {ds_info['ds_type']}"
+                  f"\nsize_{f'img = {config.IMG_DIM}x{config.CHANNELS}' if config.DATA_REQ == 'images' else f'vec = {config.VECTOR_DIM}'}")
+
         for ds_class in class_names:
-            print_log("{} : {}-{}-{} -> {}".format(ds_class, class_info['info'][ds_class]['TRAIN'],
-                                                   class_info['info'][ds_class]['VAL'],
-                                                   class_info['info'][ds_class]['TEST'],
-                                                   class_info['info'][ds_class]['TOT']))
+            print_log(f"{ds_class} : {class_info['info'][ds_class]['TRAIN']}-{class_info['info'][ds_class]['VAL']}-"
+                      f"{class_info['info'][ds_class]['TEST']} -> {class_info['info'][ds_class]['TOT']}")
         print_log("----------------")
     except KeyError as e:
         print("KeyError: {}".format(e))
-        print("POSSIBLE FIX: run 'python main.py -m DATA -d {}'".format(arguments.dataset))
+        print(f"POSSIBLE FIX: run 'python main.py -m DATA -d {arguments.dataset}'")
         exit()
 
 
