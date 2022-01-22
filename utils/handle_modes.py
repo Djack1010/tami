@@ -159,7 +159,8 @@ def initialization(arguments, class_info, ds_info, model_class):
         print_log(f"INFO EXECUTION:"
                   f"\n{mode_info}\nmodel = {arguments.model}\ndataset = {arguments.dataset}"
                   f"\noutput_model = {arguments.output_model}\nepochs = {arguments.epochs}"
-                  f"\nbatch_size = {arguments.batch_size}\ncaching = {arguments.caching}"
+                  f"\nbatch_size = {arguments.batch_size}\nlearning_rate = {arguments.learning_rate}"
+                  f"\ncaching = {arguments.caching}"
                   f"\nresults per class = {arguments.classAnalysis}"
                   f"\nmodel_input_type = {config.DATA_REQ}"
                   f"\n----------------")
@@ -202,6 +203,8 @@ def train_val(arguments, model, ds_info):
                        prepare_ds(arguments.caching, lab_val_ds, "val", arguments.batch_size)
 
     print_log(f"Start Training of {model.name} for {arguments.epochs} epochs  ", print_on_screen=True)
+    print_log(f"INFO -> dataset: {arguments.dataset}; batch_size = {arguments.batch_size}; "
+              f"learning_rate = {arguments.learning_rate}", print_on_screen=True, print_on_file=False)
 
     # Initialize callbacks for Tensorboard
     log_fit = config.main_path + "results/tensorboard/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -241,6 +244,9 @@ def train_test(arguments, model, class_info, ds_info):
 
     # Train the model over the entire total_training set and then test
     print_log(f"Start Final Training of {model.name} for {arguments.epochs} epochs  ", print_on_screen=True)
+    print_log(f"INFO -> dataset: {arguments.dataset}; batch_size = {arguments.batch_size}; "
+              f"learning_rate = {arguments.learning_rate}", print_on_screen=True, print_on_file=False)
+
     start_training = time.perf_counter()
     final_train_results = model.fit(x=fin_train_ds, batch_size=arguments.batch_size, epochs=arguments.epochs,
                                     callbacks=[ClearMemory()])

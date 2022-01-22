@@ -44,6 +44,8 @@ def parse_args():
     group.add_argument('-w', '--weights', required=False, type=str, default=None,
                        help="If you do not want random initialization of the model weights "
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
+    group.add_argument('-r', '--learning_rate', required=False, type=float, default=0.01,
+                       help="Learning rate for training models")
     group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train-val', 'train-test',
                                                                                          'test', 'gradcam-cati',
                                                                                          'gradcam-only'],
@@ -101,20 +103,20 @@ def _model_selection(model_choice, nclasses):
     print("INITIALIZING MODEL")
     mod_class = None
     if model_choice == "STANDARD_CNN":
-        mod_class = b_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = b_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "BASIC_MLP":
-        mod_class = b_mlp(nclasses, config.VECTOR_DIM)
+        mod_class = b_mlp(nclasses, config.VECTOR_DIM, learning_rate=config.LEARNING_RATE)
     elif model_choice == "LE_NET":
-        mod_class = lenet_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = lenet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "ALEX_NET":
-        mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "VGG16":
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
         if config.CHANNELS != 3:
             print("VGG requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = VGG16_19(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = VGG16_19(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE) # weights=arguments.weights, include_top=arguments.include_top)
     else:
         print("model {} not implemented yet...".format(model_choice))
         exit()
@@ -163,6 +165,7 @@ if __name__ == '__main__':
     config.CHANNELS = args.channels
     config.IMG_DIM = args.image_size
     config.VECTOR_DIM = args.image_size * args.image_size * args.channels
+    config.LEARNING_RATE = args.learning_rate
 
     # SELECTING MODELS
     model_class = _model_selection(args.model, class_info['n_classes'])

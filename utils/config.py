@@ -6,4 +6,5 @@ main_path = None
 timeExec = "{}".format(time.strftime("%d%m_%H%M%S"))
 
 # GLOBAL variables
-AUTOTUNE, CHANNELS, IMG_DIM, VECTOR_DIM, CLASS_NAMES, BATCH_SIZE, DATA_REQ = None, None, None, None, None, None, None
+AUTOTUNE, CHANNELS, IMG_DIM, VECTOR_DIM, CLASS_NAMES, BATCH_SIZE, DATA_REQ, LEARNING_RATE = \
+    None, None, None, None, None, None, None, None
