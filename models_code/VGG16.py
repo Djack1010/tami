@@ -2,12 +2,15 @@ from tensorflow.keras.layers import Dense, Flatten, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import vgg16
 from tensorflow.keras.metrics import Precision, Recall, AUC
+from tensorflow.keras.optimizers import Adam
 
 
 class VGG16_19:
 
-    def __init__(self, num_classes, img_size, channels, weights='imagenet', name="VGG", include_top=False):
+    def __init__(self, num_classes, img_size, channels, weights='imagenet', learning_rate=0.01, name="VGG",
+                 include_top=False):
         self.name = name
+        self.learning_rate = learning_rate
         self.weights = weights
         self.include_top = include_top
         self.num_classes = num_classes
@@ -46,6 +49,6 @@ class VGG16_19:
 
         model = Model(input_layer, output)
         # model.summary(line_length=50)
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(self.learning_rate),
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
         return model

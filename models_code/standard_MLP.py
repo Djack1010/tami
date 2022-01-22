@@ -1,12 +1,14 @@
 from tensorflow.keras import layers
 from tensorflow.keras import models
 from tensorflow.keras.metrics import Precision, Recall, AUC
+from tensorflow.keras.optimizers import Adam
 
 
 class StandardMLP:
 
-    def __init__(self, num_classes, vector_size, name="MLP"):
+    def __init__(self, num_classes, vector_size, learning_rate=0.01, name="MLP"):
         self.name = name
+        self.learning_rate = learning_rate
         self.num_classes = num_classes
         self.vector_size = vector_size
         self.input_type = 'vectors'
@@ -26,7 +28,7 @@ class StandardMLP:
         model.add(layers.Dense(50, activation='relu'))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(self.learning_rate),
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model
