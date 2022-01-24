@@ -126,7 +126,10 @@ def apply_gradcam(arguments, model, class_info, cati=True):
         # Get all file paths in 'label_path' for the class 'label'
         files = [i[2] for i in os.walk(label_path)]
 
-        num_samples = 50 if len(files[0]) > 50 else len(files[0]) - 10 if len(files[0]) > 10 else 5
+        if arguments.limit_gradcam is None:
+            num_samples = len(files[0])
+        else:
+            num_samples = arguments.limit_gradcam if len(files[0]) >= arguments.limit_gradcam else len(files[0])
 
         # Randomly extract 'num_sample' from the file paths, in files there is a [[files_paths1, filepath2,...]]
         imgs = random.sample(files[0], num_samples)
