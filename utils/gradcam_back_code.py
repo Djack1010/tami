@@ -105,7 +105,8 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             exit()
 
     # create folder in /results/images for this execution
-    os.mkdir(config.main_path + 'results/images/' + config.timeExec)
+    images_path = f"{config.main_path}results/images/{config.timeExec}_{arguments.model}"
+    os.mkdir(images_path)
 
     index = 0
     for img_class in class_info["class_names"]:
@@ -134,14 +135,14 @@ def apply_gradcam(arguments, model, class_info, cati=True):
         # Randomly extract 'num_sample' from the file paths, in files there is a [[files_paths1, filepath2,...]]
         imgs = random.sample(files[0], num_samples)
 
-        # create folder in /results/images/<config.timeExec> for this class
-        result_images_path = config.main_path + 'results/images/' + config.timeExec + '/' + img_class
-        if not os.path.isdir(result_images_path):
-            os.mkdir(result_images_path)
-            os.mkdir(result_images_path + '/heatmap')
-            os.mkdir(result_images_path + '/complete')
-            os.mkdir(result_images_path + '/highlights_heatmap')
-            os.mkdir(result_images_path + '/smali')
+        # create folders in /results/images/<TIME_MODEL> for this class
+        class_images_path = f"{images_path}/{img_class}"
+        if not os.path.isdir(class_images_path):
+            os.mkdir(class_images_path)
+            os.mkdir(class_images_path + '/heatmap')
+            os.mkdir(class_images_path + '/complete')
+            os.mkdir(class_images_path + '/highlights_heatmap')
+            os.mkdir(class_images_path + '/smali')
 
         for i in tqdm(range(num_samples)):
             complete_path = label_path + "/" + imgs[i]
@@ -204,26 +205,22 @@ def apply_gradcam(arguments, model, class_info, cati=True):
 
             # display the original image and resulting heatmap and output image
             complete = np.hstack([orig, heatmap, output])
-            # complete = imutils.resize(complete, width=700)
-            # semi_complete = np.hstack([orig, output])
-            # semi_complete = imutils.resize(semi_complete, width=350)
 
-            cv2.imwrite(result_images_path + '/complete/complete_' + img_filename + '.png', complete)
-            # cv2.imwrite(result_images_path + '/semi_' + img_filename.split('_')[2] + '.png', semi_complete)
+            cv2.imwrite(class_images_path + '/complete/complete_' + img_filename + '.png', complete)
 
             # store heatmaps
-            cv2.imwrite(result_images_path + f'/heatmap/heatmap{correctness if "WRONG" in correctness else ""}_' +
+            cv2.imwrite(class_images_path + f'/heatmap/heatmap{correctness if "WRONG" in correctness else ""}_' +
                         img_filename + '.png', heatmap_origin_size)
 
             # clean and store heatmaps
             cleaned_heatmap = clean_heatmap(heatmap_origin_size, 150)
-            cv2.imwrite(result_images_path + f'/highlights_heatmap/heatmap{correctness if "WRONG" in correctness else ""}_'
+            cv2.imwrite(class_images_path + f'/highlights_heatmap/heatmap{correctness if "WRONG" in correctness else ""}_'
                         + img_filename + '.png', cleaned_heatmap)
 
             if cati:
                 # lock, heatmap, filename, cati, results_path, smali_data
                 new_thread = threading.Thread(target=from_pic_to_code, args=[lock, cleaned_heatmap, img_filename, cati_path,
-                                                                             result_images_path, smali_code])
+                                                                             class_images_path, smali_code])
                 while threading.activeCount() > 6:
                     sleep(0.5)
                 new_thread.start()
@@ -241,6 +238,6 @@ def apply_gradcam(arguments, model, class_info, cati=True):
                 smali_code_list.append([smali_code[e]['occ'], e, smali_code[e]['paths']])
             smali_code_list.sort(key=lambda x: x[0], reverse=True)
 
-            with open(result_images_path + "/SMALI_CLASS.txt", "w") as to_analyse:
+            with open(class_images_path + "/SMALI_CLASS.txt", "w") as to_analyse:
                 for i in range(20):
                     to_analyse.write(f"{smali_code_list[i][1]} {smali_code_list[i][0]} {smali_code_list[i][2]}\n")
