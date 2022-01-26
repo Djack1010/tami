@@ -46,8 +46,10 @@ def parse_args():
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
     group.add_argument('-r', '--learning_rate', required=False, type=float, default=0.01,
                        help="Learning rate for training models")
-    group.add_argument('-g', '--limit_gradcam', required=False, type=int, default=None,
+    group.add_argument('-gl', '--sample_gradcam', required=False, type=int, default=None,
                        help="Limit gradcam to X samples randomly extracted from the test set")
+    group.add_argument('-gs', '--shape_gradcam', required=False, type=int, default=1,
+                       help="Select gradcam target layer with at least shapeXshape (for comparing different models)")
     group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train-val', 'train-test',
                                                                                          'test', 'gradcam-cati',
                                                                                          'gradcam-only'],

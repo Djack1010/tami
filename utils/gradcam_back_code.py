@@ -92,7 +92,7 @@ def enumerate_pixel(x, y, pic, start_zero=True):
 def apply_gradcam(arguments, model, class_info, cati=True):
 
     # initialize the gradient class activation map
-    cam = GradCAM(model)
+    cam = GradCAM(model, target_layer_min_shape=arguments.shape_gradcam)
 
     if cati:
         # hardcoded path to cati folder with decompiled results
@@ -126,10 +126,10 @@ def apply_gradcam(arguments, model, class_info, cati=True):
         # Get all file paths in 'label_path' for the class 'label'
         files = [i[2] for i in os.walk(label_path)]
 
-        if arguments.limit_gradcam is None:
+        if arguments.sample_gradcam is None:
             num_samples = len(files[0])
         else:
-            num_samples = arguments.limit_gradcam if len(files[0]) >= arguments.limit_gradcam else len(files[0])
+            num_samples = arguments.sample_gradcam if len(files[0]) >= arguments.sample_gradcam else len(files[0])
 
         # Randomly extract 'num_sample' from the file paths, in files there is a [[files_paths1, filepath2,...]]
         imgs = random.sample(files[0], num_samples)
