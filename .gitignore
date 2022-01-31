@@ -3,6 +3,7 @@
 
 # Virtualenv
 venv/
+quantum_venv/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
