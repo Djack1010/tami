@@ -28,18 +28,24 @@ Then, you should install all the necessary libraries with `pip`
 pip install -r requirements.txt 
 ```
 
-##### Run in Docker container (Suggested for experimenting on GPU)
+##### Run in Docker container 
 <a name="run_docker"></a>
+> SUGGESTED installation, almost mandatory for experimenting on GPU
+
 
 You can run TAMI in a container built upon the `tensorflow/tensorflow:latest-gpu` image. This is strongly suggested for handling dependencies related to GPU drivers, because you only need to install [Docker](https://docs.docker.com/install/) and the [NVIDIA Docker support](https://github.com/NVIDIA/nvidia-docker) to work with the Tensorflow GPU support (see also [Tensorflow Docker Requirements](https://www.tensorflow.org/install/docker) for further instructions).
 
-In the `docker/` folder of this repository, there is a Dockerfile which build the image and install the requirements for TAMI, and two scripts (`build.sh` and `run_container.sh`) to handle the docker operations.
+In the `docker/` folder of this repository, there is a Dockerfile which build the image and install the requirements for TAMI, and two scripts (`build.sh [--quantum]` and `run_container.sh`) to handle the docker operations.
 
 ```
 cd docker
 ./build.sh
 ./run_container.sh
 ```
+
+> :warning::warning::warning: **WARNING!!! Known Problem with QCNN!**
+>
+> The libraries imported to run the QCNN have some conflict with the ones in `requirements.txt`. To experimenting with QCNN, we suggest to run the tool in a virtualenv or docker container and install **ONLY** the libraries in `quantum_requirements.txt`. Running TAMI in docker, you just need to build the container with `build.sh --quantum`.
 
 #### External tools required for vectorization:
 
