@@ -8,7 +8,6 @@ from models_code.standard_MLP import StandardMLP as b_mlp
 from models_code.Le_Net_CNN import LeNet as lenet_cnn
 from models_code.Alex_Net_CNN import AlexNet as alexnet_cnn
 from models_code.VGG16 import VGG16_19
-from models_code.QCNN_QConv import QCNNqconv
 from utils import config
 import time
 from utils.generic_utils import print_log
@@ -116,13 +115,22 @@ def _model_selection(model_choice, nclasses):
     elif model_choice == "ALEX_NET":
         mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "QCNN":
-        # Print a warning if IMG_DIM bigger than a threshold, QCNN requires small size images
-        suggestion = 50
-        if config.IMG_DIM > suggestion:
-            print_log(f"QCNN requires pretty small images, image size {config.IMG_DIM} could raise problems, "
-                      f"suggest to keep image size smaller than {suggestion} with "
-                      f"'-i {suggestion}x{config.CHANNELS}'", print_on_screen=True)
-        mod_class = QCNNqconv(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
+        try:
+            from models_code.QCNN_QConv import QCNNqconv
+            # Print a warning if IMG_DIM bigger than a threshold, QCNN requires small size images
+            suggestion = 50
+            if config.IMG_DIM > suggestion:
+                print_log(f"QCNN requires pretty small images, image size {config.IMG_DIM} could raise problems, "
+                          f"suggest to keep image size smaller than {suggestion} with "
+                          f"'-i {suggestion}x{config.CHANNELS}'", print_on_screen=True)
+            mod_class = QCNNqconv(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
+        except tf.errors.NotFoundError as e:
+            print_log("ERROR! Unfortunately, there are libraries conflict between the ones listed in "
+                      "the requirements...\nQUICK_FIX: Run experiments with QCNN on a virtualenv/container installing "
+                      "the 'full_requirements.txt' file ONLY! \n"
+                      "COMMANDS:(1) docker/build.sh --quantum (2) docker/run_container.sh --quantum",
+                      print_on_screen=True)
+            exit()
     elif model_choice == "VGG16":
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
