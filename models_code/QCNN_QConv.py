@@ -20,6 +20,17 @@ class QConv(tf.keras.layers.Layer):
         self.activation = tf.keras.layers.Activation(activation)
         self.kernel_regularizer = kernel_regularizer
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "filter_size": self.filter_size,
+            "depth": self.depth,
+            "activation": self.activation,
+            "name": self.name,
+            "kernel_regularizer": self.kernel_regularizer,
+        })
+        return config
+
     def _next_qubit_set(self, original_size, next_size, qubits):
         step = original_size // next_size
         qubit_list = []
