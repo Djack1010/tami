@@ -124,7 +124,8 @@ def _model_selection(model_choice, nclasses):
                           f"suggest to keep image size smaller than {suggestion} with "
                           f"'-i {suggestion}x{config.CHANNELS}'", print_on_screen=True)
             mod_class = QCNNqconv(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
-        except tf.errors.NotFoundError as e:
+        except (tf.errors.NotFoundError, ModuleNotFoundError) as e:
+            print_log(e, print_on_screen=True)
             print_log("ERROR! Unfortunately, there are libraries conflict between the ones listed in "
                       "the requirements...\nQUICK_FIX: Run experiments with QCNN on a virtualenv/container installing "
                       "the 'full_requirements.txt' file ONLY! \n"
