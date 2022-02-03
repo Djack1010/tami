@@ -19,10 +19,10 @@ for arg in "$@"; do
 done
 
 if (($QUANTUM)); then
-    cp ../full_requirements.txt ./requirements.txt
+    cp ../requirements/full_requirements.txt ./requirements.txt
     docker build -t tami_exp_quantum/tensorflow:latest .
 else
-    cp ../partial_requirements.txt ./requirements.txt
+    cp ../requirements/partial_requirements.txt ./requirements.txt
     docker build -t tami_exp/tensorflow:latest .
 fi
 
