@@ -8,5 +8,6 @@ main_path = '/'.join(path_list) + '/'
 APK_DIR = f"{main_path}cati/sample"
 DECOMPILED = f"{main_path}cati/decompiled"
 DICTIONARY = f"{main_path}cati/Dalvik_to_OPC.txt"
+DICTIONARYrawbytes = f"{main_path}cati/Dalvik_to_OPC_RAWBYTES.txt"
 RESULTS = f"{main_path}cati/RESULTS"
 DATASETS = f"{main_path}DATASETS"

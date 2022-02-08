@@ -1,12 +1,20 @@
 import os
+import shutil
 
 
-def create_folder(folder):
+def create_folder(folder, recreate=False):
     if not os.path.isdir(folder):
         try:
             os.makedirs(folder)
         except OSError:
             pass
+    elif recreate:
+        shutil.rmtree(folder)
+        try:
+            os.makedirs(folder)
+        except OSError:
+            pass
+
 
 
 def find_smali(path, paths):
@@ -16,10 +24,3 @@ def find_smali(path, paths):
     elif os.path.isdir(path):
         for subdirectories in os.listdir(path):
             find_smali(f'{path}/{subdirectories}', paths)
-
-
-def save_txt(path, content):
-    fw = open(path, "w")
-    fw.write(content)
-    fw.close()
-
