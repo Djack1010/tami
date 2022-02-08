@@ -2,6 +2,8 @@ from datetime import datetime
 from tqdm import tqdm
 import subprocess
 import argparse
+import hashlib
+import csv
 import os
 import re
 
@@ -33,6 +35,8 @@ def parse_args():
     group.add_argument('--no-results', dest='results', action='store_false',
                        help='Do nothing in results folder, so no creation of images or legends of the'
                             ' smali files in cati/RESULTS')
+    group.add_argument('--csv-db', dest='csv_db', action='store_true',
+                       help='Generate a csv db + raw bytes files with the smali code')
     group.set_defaults(results=True)
     arguments = parser.parse_args()
     return arguments
@@ -55,11 +59,12 @@ def _check_args(arguments):
         exit()
 
 
-def _check_files(RES_FOLDER):
+def _check_files(RES_FOLDER, create_folder=True):
     families = []
     for folder in os.listdir(DECOMPILED):
         if os.path.isdir(f'{DECOMPILED}/{folder}'):
-            tools.create_folder(f"{RES_FOLDER}/{folder}")
+            if create_folder:
+                tools.create_folder(f"{RES_FOLDER}/{folder}")
             families.append(folder)
     return families
 
@@ -74,22 +79,33 @@ if __name__ == "__main__":
     args = parse_args()
     _check_args(args)
 
-    converter = opcode.Converter()
+    converter = opcode.Converter(args.csv_db)
 
     RESULTS = f"{RESULTS}/{args.output_name}"
     tools.create_folder(f"{RESULTS}")
-    FAMILIES = _check_files(RESULTS)
+    if args.csv_db:
+        tools.create_folder(f"{RESULTS}", recreate=True)
+        tools.create_folder(f"{RESULTS}/files")
+        tools.create_folder(f"{RESULTS}/legends")
+        with open(f'{RESULTS}/data.csv', 'w') as out_csv:
+            writer = csv.writer(out_csv)
+            writer.writerow(["sha256", "is_malicious", "file_size", "malware_family"])
+
+    FAMILIES = _check_files(RESULTS, create_folder=False if args.csv_db else True)
+    with open(f"{RESULTS}/info.txt", 'w') as info:
+        for i, f in enumerate(FAMILIES):
+            info.write(f"{i} -> {f}; ")
 
     apk = {}
 
     print('Initialization completed...\n')
 
     for family in FAMILIES:
-        apk[family] = 0
+        apk[family] = {'num': 0, 'files': []}
         file_progressing = tqdm(os.listdir(f'{DECOMPILED}/{family}'),
                                 position=0, unit=' file', bar_format='', leave=False)
         for file in file_progressing:
-            apk[family] += 1
+            apk[family]['num'] += 1
             try:
                 if args.results:
                     file_progressing.bar_format = '{desc}|{bar:20}{r_bar}'
@@ -120,32 +136,66 @@ if __name__ == "__main__":
 
                             # saving number of character and encoded content
                             num_character = len(encoded_content)
-                            smali_k[class_name] = num_character
+                            if args.csv_db:
+                                meth_indexes = converter.methods_indexes(encoded_content)
+                                smali_k[class_name] = {'len': num_character, 'meth': meth_indexes}
+                            else:
+                                smali_k[class_name] = num_character
                             general_content += encoded_content
 
-                        # creating the image on the whole converted text
-                        if args.channels == 1:  # greyscale
-                            img, pix_map, dim = image.img_generator(general_content, True)
-                            image.char_reader_greyscale(general_content, pix_map, dim)
-                        else:  # colorful
-                            img, pix_map, dim = image.img_generator(general_content, False)
-                            image.char_reader_colorful(general_content, pix_map, dim)
-                        img.save(f"{RESULTS}/{family}/{file}.png")
+                        if args.csv_db:
+                            # create csv db and raw bytes of smali code
+                            gen_cont_bytes = general_content.encode()
 
-                        # saving the png with the class division
-                        img, pix_map, dim = image.legend_image_generator(len(general_content))
-                        image.legend_pixel_generator(smali_k, pix_map, dim)
-                        img.save(f"{RESULTS}/{family}/{file}_class.png")
+                            hash_file = hashlib.sha256()
+                            hash_file.update(gen_cont_bytes)
+                            res = hash_file.hexdigest()
 
-                        # saving the legend of the classes in the image
-                        tools.save_txt(f"{RESULTS}/{family}/{file}_legend.txt", image.legend_of_image(dim, smali_k))
+                            if not os.path.exists(f"{RESULTS}/files/{res}"):
+                                with open(f"{RESULTS}/files/{res}", "wb") as output_file:
+                                    output_file.write(general_content.encode())
+                                apk[family]['files'].append(res)
+                                file_size = os.path.getsize(f"{RESULTS}/files/{res}")
+                                with open(f'{RESULTS}/data.csv', 'a') as out_csv:
+                                    writer = csv.writer(out_csv)
+                                    # writer.writerow(["sha256", "is_malicious", "file_size", "malware_family"])
+                                    writer.writerow([res, 0 if family.lower() == 'trusted' else 1, file_size,
+                                                     FAMILIES.index(family)])
+
+                            # saving the legend of the classes in the image, also in case of duplicates
+                            if not os.path.exists(f"{RESULTS}/legends/{res}_legend.txt"):
+                                image.save_legend(smali_k, f"{RESULTS}/legends/{res}_legend.txt")
+                            else:
+                                dup = 1
+                                while os.path.exists(f"{RESULTS}/legends/{res}_legend({dup}).txt"):
+                                    dup += 1
+                                image.save_legend(smali_k, f"{RESULTS}/legends/{res}_legend({dup}).txt")
+
+                        else:
+                            # creating the image on the whole converted text
+                            if args.channels == 1:  # greyscale
+                                img, pix_map, dim = image.img_generator(general_content, True)
+                                image.char_reader_greyscale(general_content, pix_map, dim)
+                            else:  # colorful
+                                img, pix_map, dim = image.img_generator(general_content, False)
+                                image.char_reader_colorful(general_content, pix_map, dim)
+                            img.save(f"{RESULTS}/{family}/{file}.png")
+
+                            # saving the png with the class division
+                            img, pix_map, dim = image.legend_image_generator(len(general_content))
+                            image.legend_pixel_generator(smali_k, pix_map, dim)
+                            img.save(f"{RESULTS}/{family}/{file}_class.png")
+
+                            # saving the legend of the classes in the image
+                            image.save_legend(smali_k, f"{RESULTS}/{family}/{file}_legend.txt", square_side=dim)
+
             except RecursionError:
                 print(f"Catched RecursionError for {DECOMPILED}/{family}/{file}, continue...")
                 continue
     if args.results:
         print('Creation of the images completed')
 
-    if args.storage:
+    if args.storage and not args.csv_db:
         print('Starting to build the dataset')
         process_data.create_dataset(apk, args.output_name, args.image_size,
                                     args.training, args.validation)

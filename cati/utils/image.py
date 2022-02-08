@@ -127,26 +127,26 @@ def fil_image(pixmap, pixel, x, y, dim):
     return x, y, pixmap
 
 
-def legend_of_image(square_side, smali_dim):
-    """These lines read the number of character of a class and calculate where it begins and ends inside the image"""
-    image_legend = ""
-    first = True
-    end = 0
-    for name in smali_dim:
-        if first:
-            end = smali_dim[name] + 1
-            xe = end % square_side + 1
-            ye = end // square_side + 1
-            image_legend = f"{name} [1,1] [{xe},{ye}]"
-            first = False
-        else:
-            start = end + 1
-            xs = start % square_side + 1
-            ys = start // square_side + 1
+def save_legend(smali_dim, output, square_side=None):
+    """
+    These lines read the number of character of a class and calculate where it begins and ends inside the image
+      IF square_side is None, the character are printed NOT as an image, but as raw bytes in line.
+    """
+    with open(output, "w") as out_file:
+        end = 0
+        for name in smali_dim:
 
-            end = start + smali_dim[name]
-            xe = end % square_side + 1
-            ye = end // square_side + 1
-            image_legend += f"\n{name} [{xs},{ys}] [{xe},{ye}]"
+            if square_side is not None:
+                start = end + 1
+                end = start + smali_dim[name]
+                xs = start % square_side + 1
+                ys = start // square_side + 1
 
-    return image_legend
+                xe = end % square_side + 1
+                ye = end // square_side + 1
+                out_file.write(f"\n{name} [{xs},{ys}] [{xe},{ye}]")
+
+            else:
+                start = end + 1
+                end = smali_dim[name]['len'] + 1
+                out_file.write(f"\n{name} [{start}-{end}] METHODS: {smali_dim[name]['meth']}")
