@@ -5,6 +5,9 @@
 venv/
 quantum_venv/
 
+# Symlink
+tami_data_on_windows/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
