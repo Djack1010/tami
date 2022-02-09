@@ -26,8 +26,10 @@ def parse_args():
     group.add_argument('-i', '--image_size', required=False, type=str, default="250x1",
                        help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and Channel of the images in input '
                             'default is [250x1] (reshape will be applied)')
-    group.add_argument('-o', '--output_name', required=False, type=str, default="data",
-                       help='Enter the name by which you want to call the output')
+    group.add_argument('-n', '--input_path', required=False, type=str, default=None,
+                       help='Input path to smali files')
+    group.add_argument('-o', '--output_path', required=False, type=str, default=None,
+                       help='Output path to store results')
     # FLAGS
     group.add_argument('--no-storage', dest='storage', action='store_false',
                        help='Do not create a dataset in tami/DATASETS')
@@ -81,8 +83,17 @@ if __name__ == "__main__":
 
     converter = opcode.Converter(args.csv_db)
 
-    RESULTS = f"{RESULTS}/{args.output_name}"
-    tools.create_folder(f"{RESULTS}")
+    if args.input_path is not None:
+        DECOMPILED = args.input_path
+        if not os.path.exists(DECOMPILED):
+            print(f"Input folder {DECOMPILED} not found, exiting...")
+            exit()
+    if args.output_path is not None:
+        RESULTS = args.output_path
+        if not os.path.exists('/'.join(RESULTS.split('/')[:-1])):
+            print(f"Output folder {RESULTS} not found, exiting...")
+            exit()
+
     if args.csv_db:
         tools.create_folder(f"{RESULTS}", recreate=True)
         tools.create_folder(f"{RESULTS}/files")
@@ -197,7 +208,7 @@ if __name__ == "__main__":
 
     if args.storage and not args.csv_db:
         print('Starting to build the dataset')
-        process_data.create_dataset(apk, args.output_name, args.image_size,
+        process_data.create_dataset(apk, args.output_path.split('/')[-1], args.image_size,
                                     args.training, args.validation)
         print('Creation of the dataset completed')
     end = datetime.now().strftime(FMT)
