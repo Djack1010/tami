@@ -17,8 +17,7 @@ from utils.gradcam_back_code import apply_gradcam
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Deep Learning Image-based Malware Classification')
+    parser = argparse.ArgumentParser(prog="TAMI", description='Tool for Analyzing Malware represented as Images')
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'STANDARD_CNN', 'ALEX_NET',
@@ -61,6 +60,7 @@ def parse_args():
                             "the model provided. 'gradcam-only' will generate the heatmaps only, while 'gradcam-cati "
                             "will also run the cati tool to reverse process and select the code from the heatmap to "
                             "the decompiled smali (if provided, see cati README)")
+    group.add_argument('-v', '--version', action='version', version=f'{parser.prog} version {config.__version__}')
     # FLAGS
     group.add_argument('--exclude_top', dest='include_top', action='store_false',
                        help='Exclude the fully-connected layer at the top of the network (default INCLUDE)')
