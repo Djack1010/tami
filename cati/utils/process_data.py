@@ -16,7 +16,7 @@ def create_dataset(apks, name, side, training_per, validation_per):
         tls.create_folder(f"{dataset_path}/training/val/{family}")
         tls.create_folder(f"{dataset_path}/training/train/{family}")
         tls.create_folder(f"{dataset_path}/test/{family}")
-        training = apks[family] * training_per / 100
+        training = apks[family]['num'] * training_per / 100
         validation = training * validation_per / 100
         # training -= validation
         i = 1
