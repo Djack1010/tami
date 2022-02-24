@@ -17,7 +17,6 @@ colorama==0.4.3
 contextlib2==0.6.0
 crcmod==1.7
 cycler==0.10.0
-dbus-python==1.2.16
 decorator==4.4.2
 defusedxml==0.6.0
 dill==0.3.1.1
@@ -126,7 +125,6 @@ PyGObject==3.36.0
 pymongo==3.11.0
 pyparsing==2.4.6
 pyrsistent==0.17.3
-python-apt==2.0.0+ubuntu0.20.4.6
 python-dateutil==2.8.1
 pytoml==0.1.21
 pytz==2020.4
