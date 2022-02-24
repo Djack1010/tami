@@ -1,6 +1,7 @@
 *
 */
 !.gitignore
-!dataset_test/
+!dataset_test_malware/
+!dataset_test_animals/
 !README.txt
 dataset_test/info.txt
