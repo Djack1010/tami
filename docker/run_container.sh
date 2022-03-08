@@ -2,13 +2,23 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 function usage {
   echo "USAGE: $0 [--quantum] [--no-gpu]"
-  exit
+  if [ "$1" == "--no-exit" ]; then
+    :
+  else
+    exit
+  fi
 }
 
 cd $SCRIPTPATH
 
-QUANTUM=0
-GPU=1
+usage --no-exit
+
+if nvidia-smi &>/dev/null ; then
+  GPU=1
+else
+  echo "Nvidia drivers not found, running in CPU-mode. For more information, see https://github.com/NVIDIA/nvidia-docker"
+  GPU=0
+fi
 
 for arg in "$@"; do
   if [ "$arg" == "--quantum" ]; then
@@ -21,16 +31,22 @@ for arg in "$@"; do
   fi 
 done
 
+echo "STARTING Tensorflow container"
+
 if (($QUANTUM)); then
   if (($GPU)); then
+    echo "QUANTUM: true; GPU: true;"
     docker run --gpus all --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp_quantum/tensorflow:latest bash
   else
+    echo "QUANTUM: true; GPU: false;"
     docker run --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp_quantum/tensorflow:latest bash
   fi
 else
   if (($GPU)); then
+    echo "QUANTUM: false; GPU: true;"
     docker run --gpus all --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp/tensorflow:latest bash
   else
+    echo "QUANTUM: false; GPU: false;"
     docker run --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp/tensorflow:latest bash
   fi
 fi
