@@ -136,35 +136,18 @@ if __name__ == "__main__":
                         subprocess.call([f'rm -r {DECOMPILED}/{family}/{file} {APK_DIR}/{family}/{file}'],
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
                     else:
-                        general_content = ""
-                        smali_k = {}
-                        end = 0
-                        for smali in smali_paths:
-                            class_name = smali.replace(f'{DECOMPILED}/{family}', "")
-                            fr = open(smali, "r")
-                            encoded_content = converter.encoder(fr.read())
-                            fr.close()
-
-                            # saving number of character and encoded content
-                            num_character = len(encoded_content)
-                            if args.csv_db:
-                                meth_indexes = converter.methods_indexes(encoded_content)
-                                smali_k[class_name] = {'len': num_character, 'meth': meth_indexes}
-                            else:
-                                smali_k[class_name] = num_character
-                            general_content += encoded_content
 
                         if args.csv_db:
                             # create csv db and raw bytes of smali code
-                            gen_cont_bytes = general_content.encode()
+                            smali_k, general_content = converter.analyse_content(smali_paths, family, byte_format=True)
 
                             hash_file = hashlib.sha256()
-                            hash_file.update(gen_cont_bytes)
+                            hash_file.update(general_content)
                             res = hash_file.hexdigest()
 
                             if not os.path.exists(f"{RESULTS}/files/{res}"):
                                 with open(f"{RESULTS}/files/{res}", "wb") as output_file:
-                                    output_file.write(general_content.encode())
+                                    output_file.write(general_content)
                                 apk[family]['files'].append(res)
                                 file_size = os.path.getsize(f"{RESULTS}/files/{res}")
                                 with open(f'{RESULTS}/data.csv', 'a') as out_csv:
@@ -184,6 +167,8 @@ if __name__ == "__main__":
 
                         else:
                             # creating the image on the whole converted text
+                            smali_k, general_content = converter.analyse_content(smali_paths, family, byte_format=False)
+
                             if args.channels == 1:  # greyscale
                                 img, pix_map, dim = image.img_generator(general_content, True)
                                 image.char_reader_greyscale(general_content, pix_map, dim)

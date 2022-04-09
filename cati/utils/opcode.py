@@ -31,16 +31,50 @@ class Converter:
             content = re.sub(word, opcode, content)
         return content
 
-    def methods_indexes(self, content):
-        start_ch = self.exDict.get('.method')
-        end_ch = self.exDict.get('.end method')
+    def analyse_content(self, smali_paths, family, byte_format=False):
+        general_content = b'' if byte_format else ""
+        smali_k = {}
+        for smali in smali_paths:
+            class_name = smali.replace(f'{DECOMPILED}/{family}', "")
+            fr = open(smali, "r")
+            content = self.encoder(fr.read())
+            fr.close()
+
+            if byte_format:
+                content = content.encode()
+
+            # saving number of character and content
+            num_character = len(content)
+            if byte_format:
+                meth_indexes = self.methods_indexes(content, byte_format)
+                smali_k[class_name] = {'len': num_character, 'meth': meth_indexes}
+                general_content = b''.join([general_content, content])
+            else:
+                smali_k[class_name] = num_character
+                general_content += content
+        return smali_k, general_content
+
+    def methods_indexes(self, content, byte_format=False):
+        start_ch = self.exDict.get('.method').encode() if byte_format else self.exDict.get('.method')
+        end_ch = self.exDict.get('.end method').encode() if byte_format else self.exDict.get('.end method')
         methods_index = []
         st = None
-        for i, ch in enumerate(content):
-            if ch == start_ch:
-                st = i
-            elif ch == end_ch:
-                if st is not None:
-                    methods_index.append((st, i))
-                    st = None
+        if byte_format:
+            iterable_bytes = [content[i:i+1] for i in range(len(content))]
+            for i in range(len(iterable_bytes)-1):
+                ch = b''.join([iterable_bytes[i], iterable_bytes[i+1]])
+                if ch == start_ch:
+                    st = i
+                elif ch == end_ch:
+                    if st is not None:
+                        methods_index.append((st, i))
+                        st = None
+        else:
+            for i, ch in enumerate(content):
+                if ch == start_ch:
+                    st = i
+                elif ch == end_ch:
+                    if st is not None:
+                        methods_index.append((st, i))
+                        st = None
         return methods_index

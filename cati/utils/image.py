@@ -147,6 +147,6 @@ def save_legend(smali_dim, output, square_side=None):
                 out_file.write(f"\n{name} [{xs},{ys}] [{xe},{ye}]")
 
             else:
-                start = end + 1
-                end = smali_dim[name]['len'] + 1
-                out_file.write(f"\n{name} [{start}-{end}] METHODS: {smali_dim[name]['meth']}")
+                lenght = smali_dim[name]['len'] + 1
+                out_file.write(f"\n{name} [{end}+{lenght}] METHODS: {smali_dim[name]['meth']}")
+                end += lenght + 1
