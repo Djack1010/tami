@@ -7,6 +7,7 @@ from models_code.standard_CNN import StandardCNN as b_cnn
 from models_code.standard_MLP import StandardMLP as b_mlp
 from models_code.Le_Net_CNN import LeNet as lenet_cnn
 from models_code.Alex_Net_CNN import AlexNet as alexnet_cnn
+from models_code.FabNet import FabNet as fab_cnn
 from models_code.VGG16 import VGG16_19
 from utils import config
 import time
@@ -21,7 +22,7 @@ def parse_args():
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'STANDARD_CNN', 'ALEX_NET',
-                                                                          'BASIC_LSTM', 'STANDARD_MLP', 'VGG16', 'QCNN'],
+                                                                          'BASIC_LSTM', 'STANDARD_MLP', 'VGG16', 'QCNN', 'FAB_CONVNET'],
                        help='Choose the model to use between the ones implemented')
     group.add_argument('-d', '--dataset', required=True, type=str,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
@@ -114,6 +115,8 @@ def _model_selection(model_choice, nclasses):
         mod_class = lenet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "ALEX_NET":
         mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
+    elif model_choice == "FAB_CONVNET":
+        mod_class = fab_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "QCNN":
         try:
             from models_code.QCNN_QConv import QCNNqconv
