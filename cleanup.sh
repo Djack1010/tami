@@ -7,8 +7,8 @@ if [ "$1" == "--logs" ]; then
 	rm -rf results/tensorboard/fit/
 	echo "Cleaning /results/{exec_logs|figures|tensorboard|images} folders"
 elif [ "$1" == "--models" ]; then
-  rm -rf models_saved/*
-  echo "Cleaning /models_saved folder"
+  rm -rf saved_models/*
+  echo "Cleaning /saved_models folder"
 elif [ "$1" == "--tuning" ]; then
   rm -rf tuning/*
   echo "Cleaning /tuning folder"

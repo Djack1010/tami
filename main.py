@@ -3,11 +3,11 @@ import datetime
 import re
 import os
 import tensorflow as tf
-from models_code.standard_CNN import StandardCNN as b_cnn
-from models_code.standard_MLP import StandardMLP as b_mlp
-from models_code.Le_Net_CNN import LeNet as lenet_cnn
-from models_code.Alex_Net_CNN import AlexNet as alexnet_cnn
-from models_code.VGG16 import VGG16_19
+from code_models.standard_CNN import StandardCNN as b_cnn
+from code_models.standard_MLP import StandardMLP as b_mlp
+from code_models.Le_Net_CNN import LeNet as lenet_cnn
+from code_models.Alex_Net_CNN import AlexNet as alexnet_cnn
+from code_models.VGG16 import VGG16_19
 from utils import config
 import time
 from utils.generic_utils import print_log
@@ -116,7 +116,7 @@ def _model_selection(model_choice, nclasses):
         mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "QCNN":
         try:
-            from models_code.QCNN_QConv import QCNNqconv
+            from code_models.QCNN_QConv import QCNNqconv
             # Print a warning if IMG_DIM bigger than a threshold, QCNN requires small size images
             suggestion = 50
             if config.IMG_DIM > suggestion:

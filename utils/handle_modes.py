@@ -309,7 +309,7 @@ def test(arguments, model, class_info, ds_info):
 
 
 def save_model(arguments, model):
-    model_path = config.main_path + 'models_saved/{}_m{}' \
+    model_path = config.main_path + 'saved_models/{}_m{}' \
         .format(arguments.output_model, arguments.model)
 
     # save model and architecture to single file
@@ -320,7 +320,7 @@ def save_model(arguments, model):
         store_data = {"CLASS_NAMES": config.CLASS_NAMES, "CHANNELS": config.CHANNELS, "IMG_DIM": config.IMG_DIM}
         pickle.dump(store_data, filehandle)
 
-    print_log("Model, Weights and Info saved to 'models_saved/{}_m{}[.info]'"
+    print_log("Model, Weights and Info saved to 'saved_models/{}_m{}[.info]'"
               .format(arguments.output_model, arguments.model),
               print_on_screen=True)
 
@@ -332,7 +332,7 @@ def load_model(arguments, required_img, required_chan, required_numClasses):
     --image_size arguments and then check if the loaded model fits this requirements
     """
     print("LOADING MODEL")
-    model_path = config.main_path + 'models_saved/{}_m{}'\
+    model_path = config.main_path + 'saved_models/{}_m{}'\
         .format(arguments.load_model, arguments.model)
     if not os.path.isdir(model_path):
         print("Model not found in {}, exiting...".format(model_path))
@@ -362,12 +362,12 @@ def load_model(arguments, required_img, required_chan, required_numClasses):
 
 def save_weights(arguments, model):
     print("SAVING WEIGHTS")
-    model.save_weights(config.main_path + 'models_saved/{}_m{}_weights'.format(arguments.output_model, arguments.model))
+    model.save_weights(config.main_path + 'saved_models/{}_m{}_weights'.format(arguments.output_model, arguments.model))
 
 
 def load_weights(arguments, model):
     print("LOADING WEIGHTS")
-    model.load_weights(config.main_path + 'models_saved/{}_m{}_weights'.format(arguments.load_model, arguments.model))
+    model.load_weights(config.main_path + 'saved_models/{}_m{}_weights'.format(arguments.load_model, arguments.model))
     return model
 
 

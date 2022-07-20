@@ -39,10 +39,10 @@ if [ "$(ls tuning/)" ]; then
   rm -f tuning/.gitignore
 fi
 
-if [ "$(ls models_saved/)" ]; then
+if [ "$(ls saved_models/)" ]; then
   mkdir -p "BACKUP/${TIMESTAMP}"
-  cp -r models_saved/ BACKUP/${TIMESTAMP}/
-  rm -f models_saved/.gitignore
+  cp -r saved_models/ BACKUP/${TIMESTAMP}/
+  rm -f saved_models/.gitignore
 fi
 
 if [ -d "BACKUP/${TIMESTAMP}" ]; then

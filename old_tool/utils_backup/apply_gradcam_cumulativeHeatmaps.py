@@ -1,5 +1,5 @@
 import math
-from models_code.gradcam import GradCAM
+from code_models.gradcam import GradCAM
 from utils import config
 from utils.handle_modes import process_path
 import tensorflow as tf
