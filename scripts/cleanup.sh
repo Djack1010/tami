@@ -1,16 +1,18 @@
 #!/bin/bash
 
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/.."
+
 if [ "$1" == "--logs" ]; then
-	rm -f results/exec_logs/*.results
-	rm -f results/figures/*.png
-	rm -rf results/images/*
-	rm -rf results/tensorboard/fit/
+	rm -f ${SCRIPTPATH}/results/exec_logs/*.results
+	rm -f ${SCRIPTPATH}/results/figures/*.png
+	rm -rf ${SCRIPTPATH}/results/images/*
+	rm -rf ${SCRIPTPATH}/results/tensorboard/fit/
 	echo "Cleaning /results/{exec_logs|figures|tensorboard|images} folders"
 elif [ "$1" == "--models" ]; then
-  rm -rf saved_models/*
+  rm -rf ${SCRIPTPATH}/saved_models/*
   echo "Cleaning /saved_models folder"
 elif [ "$1" == "--tuning" ]; then
-  rm -rf tuning/*
+  rm -rf ${SCRIPTPATH}/tuning/*
   echo "Cleaning /tuning folder"
 elif [ "$1" == "--complete" ]; then
   ./cleanup.sh --logs --ignore
@@ -19,11 +21,11 @@ elif [ "$1" == "--complete" ]; then
 fi
 
 if [ "$2" != "--ignore" ]; then
-  rm -f temp/train.*
-  rm -f temp/val.*
-  rm -f temp/test.*
-  rm -f temp/fin_tr.*
-  rm -f temp/*.data
+  rm -f ${SCRIPTPATH}/temp/train.*
+  rm -f ${SCRIPTPATH}/temp/val.*
+  rm -f ${SCRIPTPATH}/temp/test.*
+  rm -f ${SCRIPTPATH}/temp/fin_tr.*
+  rm -f ${SCRIPTPATH}/temp/*.data
   echo "Cleaning /temp folder"
   echo "USAGE: $0 --[logs|models|tuning|complete]"
 fi

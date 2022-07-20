@@ -2,7 +2,7 @@
 
 # Author: Giacomo Iadarola
 
-SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/.."
 
 rm -rf "${SCRIPTPATH}"/fftw-*
 rm -rf "${SCRIPTPATH}"/ext_tools/lear*
