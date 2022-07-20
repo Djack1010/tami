@@ -3,6 +3,7 @@ from tensorflow.keras import models
 from tensorflow.keras.metrics import Precision, Recall, AUC
 from tensorflow.keras.optimizers import Adam
 
+
 class FabNet:
 
     def __init__(self, num_classes, img_size, channels, learning_rate=0.01, name="Fab_ConvNet"):
@@ -30,7 +31,6 @@ class FabNet:
         model.add(layers.Dense(64, activation='relu'))
         model.add(layers.Dropout(0.3))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
-
 
         model.compile(loss='categorical_crossentropy', optimizer=Adam(self.learning_rate),
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
