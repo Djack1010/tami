@@ -12,8 +12,9 @@ class AfaMLPSVM:
      LINK: (https://arxiv.org/pdf/1801.00318.pdf)
     """
 
-    def __init__(self, num_classes, vector_size, name="afaMLPSVM"):
+    def __init__(self, num_classes, vector_size, learning_rate=0.01, name="afaMLPSVM"):
         self.name = name
+        self.learning_rate = learning_rate
         self.num_classes = num_classes
         self.vector_size = vector_size
         self.input_type = 'vectors'

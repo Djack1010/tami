@@ -12,8 +12,9 @@ class AfaCNNSVM:
      LINK: (https://arxiv.org/pdf/1801.00318.pdf)
     """
 
-    def __init__(self, num_classes, img_size, channels, name="afaCNNSVM"):
+    def __init__(self, num_classes, img_size, channels, learning_rate=0.01, name="afaCNNSVM"):
         self.name = name
+        self.learning_rate = learning_rate
         self.num_classes = num_classes
         self.input_width_height = img_size
         self.channels = channels

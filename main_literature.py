@@ -36,6 +36,8 @@ def parse_args():
     group.add_argument('-t', '--tuning', required=False, type=str, default=None, choices=['hyperband', 'random',
                                                                                           'bayesian'],
                        help='Run Keras Tuner for tuning hyperparameters, options: [hyperband, random, bayesian]')
+    group.add_argument('-r', '--learning_rate', required=False, type=float, default=0.01,
+                       help="Learning rate for training models")
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
     group.add_argument('-b', '--batch_size', required=False, type=int, default=32)
