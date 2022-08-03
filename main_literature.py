@@ -45,6 +45,8 @@ def parse_args():
     group.add_argument('-w', '--weights', required=False, type=str, default=None,
                        help="If you do not want random initialization of the model weights "
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
+    group.add_argument('-r', '--learning_rate', required=False, type=float, default=0.01,
+                       help="Learning rate for training models")
     group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train-val', 'train-test',
                                                                                          'test', 'gradcam-cati',
                                                                                          'gradcam-only'],
@@ -102,17 +104,17 @@ def _model_selection(model_choice, nclasses):
     print("INITIALIZING MODEL")
     mod_class = None
     if model_choice == "AFA_CNNSVM":
-        mod_class = afaCNN(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = afaCNN(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "AFA_MLPSVM":
-        mod_class = afaMLP(nclasses, config.VECTOR_DIM)
+        mod_class = afaMLP(nclasses, config.VECTOR_DIM, learning_rate=config.LEARNING_RATE)
     elif model_choice == "CS_CNN":
-        mod_class = CsCNN(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = CsCNN(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "IMCFN":
-        mod_class = IMCFN(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = IMCFN(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "KHJ_CNN":
-        mod_class = KhjCNN(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = KhjCNN(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "MCNN":
-        mod_class = MCNN(nclasses, config.IMG_DIM, config.CHANNELS)
+        mod_class = MCNN(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     else:
         print("model {} not implemented yet...".format(model_choice))
         exit()
@@ -161,6 +163,7 @@ if __name__ == '__main__':
     config.CHANNELS = args.channels
     config.IMG_DIM = args.image_size
     config.VECTOR_DIM = args.image_size * args.image_size * args.channels
+    config.LEARNING_RATE = args.learning_rate
 
     # SELECTING MODELS
     model_class = _model_selection(args.model, class_info['n_classes'])

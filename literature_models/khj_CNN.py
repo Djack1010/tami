@@ -1,6 +1,7 @@
 from tensorflow.keras import layers
 from tensorflow.keras import models
 from tensorflow.keras.metrics import Precision, Recall, AUC
+from tensorflow.keras.optimizers import Adam
 
 
 class KhjCNN:
@@ -11,8 +12,9 @@ class KhjCNN:
      LINK: (https://link.springer.com/chapter/10.1007/978-981-10-7605-3_215)
     """
 
-    def __init__(self, num_classes, img_size, channels, name="khj"):
+    def __init__(self, num_classes, img_size, channels, learning_rate=0.01, name="khj"):
         self.name = name
+        self.learning_rate = learning_rate
         self.num_classes = num_classes
         self.input_width_height = img_size
         self.channels = channels
@@ -31,7 +33,7 @@ class KhjCNN:
         model.add(layers.Dropout(0.5))
         model.add(layers.Dense(self.num_classes, activation='softmax'))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=self.learning_rate),
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model
