@@ -8,6 +8,12 @@ from code_models.standard_MLP import StandardMLP as b_mlp
 from code_models.Le_Net_CNN import LeNet as lenet_cnn
 from code_models.Alex_Net_CNN import AlexNet as alexnet_cnn
 from code_models.VGG16 import VGG16_19
+from code_models.VGG19 import VGG19
+from code_models.EfficientNet import EfficientNet
+from code_models.InceptionV3 import Inception
+from code_models.MobileNet import MobNet
+from code_models.ResNet50 import ResNet
+from code_models.Dense121 import DenseNet
 from code_models.FabNet import FabNet as fab_cnn
 from utils import config
 import time
@@ -22,7 +28,8 @@ def parse_args():
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'STANDARD_CNN', 'ALEX_NET',
-                                                                          'BASIC_LSTM', 'STANDARD_MLP', 'VGG16', 'QCNN',
+                                                                          'BASIC_LSTM', 'STANDARD_MLP', 'VGG16', 'VGG19',
+                                                                          'Inception', 'ResNet50','MobileNet','DenseNet','EfficientNet','QCNN',
                                                                           'FAB_CONVNET'],
                        help='Choose the model to use between the ones implemented')
     group.add_argument('-d', '--dataset', required=True, type=str,
@@ -143,6 +150,48 @@ def _model_selection(model_choice, nclasses):
             print("VGG requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
         mod_class = VGG16_19(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE) # weights=arguments.weights, include_top=arguments.include_top)
+    elif model_choice == "VGG19":
+        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
+        # and in any case, channels has to be 3
+        if config.CHANNELS != 3:
+            print("VGG requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            exit()
+        mod_class = VGG19(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+    elif model_choice == "ResNet50":
+        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
+        # and in any case, channels has to be 3
+        if config.CHANNELS != 3:
+            print("ResNet50 requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            exit()
+        mod_class = ResNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+    elif model_choice == "Inception":
+        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
+        # and in any case, channels has to be 3
+        if config.CHANNELS != 3:
+            print("INCEPTION requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            exit()
+        mod_class = Inception(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+    elif model_choice == "MobileNet":
+        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
+        # and in any case, channels has to be 3
+        if config.CHANNELS != 3:
+            print("INCEPTION requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            exit()
+        mod_class = MobNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+    elif model_choice == "DenseNet":
+        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
+        # and in any case, channels has to be 3
+        if config.CHANNELS != 3:
+            print("Dense121 requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            exit()
+        mod_class = DenseNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+    elif model_choice == "EfficientNet":
+        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
+        # and in any case, channels has to be 3
+        if config.CHANNELS != 3:
+            print("EfficientNet requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            exit()
+        mod_class = EfficientNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
     else:
         print("model {} not implemented yet...".format(model_choice))
         exit()
