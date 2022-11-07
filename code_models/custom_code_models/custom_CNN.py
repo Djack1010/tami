@@ -4,7 +4,7 @@ from tensorflow.keras.metrics import Precision, Recall, AUC
 from tensorflow.keras.optimizers import Adam
 
 
-class StandardCNN:
+class CustomCNN:
 
     def __init__(self, num_classes, img_size, channels, learning_rate=0.01, name="CNN"):
         self.name = name

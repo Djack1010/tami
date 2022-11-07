@@ -1,13 +1,13 @@
 from tensorflow.keras.layers import Dense, Flatten, Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications import vgg16
+from tensorflow.keras.applications import DenseNet121
 from tensorflow.keras.metrics import Precision, Recall, AUC
 from tensorflow.keras.optimizers import Adam
 
 
-class VGG16_19:
+class DenseNet:
 
-    def __init__(self, num_classes, img_size, channels, weights='imagenet', learning_rate=0.01, name="VGG",
+    def __init__(self, num_classes, img_size, channels, weights='imagenet', learning_rate=0.01, name="DenseNet",
                  include_top=False):
         self.name = name
         self.learning_rate = learning_rate
@@ -28,18 +28,22 @@ class VGG16_19:
                 print("IF include_top=True, input_shape MUST be (224,224,3), exiting...")
                 exit()
             else:
-                if self.name == "VGG" or self.name == "VGG16":
-                    base_model = vgg16.VGG16(weights=self.weights, include_top=True, classes=self.num_classes)
+                if self.name == "DenseNet" or self.name == "DenseNet121":
+                    base_model = DenseNet121(weights=self.weights, include_top=False, classes=self.num_classes)
                 else:
-                    print("Invalid name, accepted 'VGG1619', exiting...")
+                    print("Invalid name, accepted 'DenseNet', exiting...")
                     exit()
                 output = base_model.output
         else:
+            # TODO: check 'inputs' and required size
             inputs = Input(shape=(self.input_width_height, self.input_width_height, self.channels))
-            if self.name == "VGG" or self.name == "VGG16":
-                base_model = vgg16.VGG16(weights=self.weights, include_top=False, input_tensor=inputs)
+            if self.name == "DenseNet" or self.name == "DenseNet121":
+                #base_model = InceptionV3(weights='imagenet', include_top=False, input_tensor=inputs)
+                input_tensor = Input(shape=(224, 224, 3))
+                base_model = DenseNet121(input_tensor=input_tensor, weights='imagenet', include_top=False)
+                #base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(self.input_width_height, self.input_width_height, self.channels))
             else:
-                print("Invalid name, accepted 'VGG16', exiting...")
+                print("Invalid name, accepted 'DenseNet', exiting...")
                 exit()
             flatten = Flatten(name='my_flatten')
             output_layer = Dense(self.num_classes, activation='softmax', name='my_predictions')

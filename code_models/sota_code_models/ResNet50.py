@@ -1,13 +1,16 @@
 from tensorflow.keras.layers import Dense, Flatten, Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications import vgg19
+from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.metrics import Precision, Recall, AUC
+from tensorflow.keras.optimizers import Adam
 
 
-class VGG19:
+class ResNet:
 
-    def __init__(self, num_classes, img_size, channels, weights='imagenet', name="VGG", include_top=False):
+    def __init__(self, num_classes, img_size, channels, weights='imagenet', learning_rate=0.01, name="ResNet50",
+                 include_top=False):
         self.name = name
+        self.learning_rate = learning_rate
         self.weights = weights
         self.include_top = include_top
         self.num_classes = num_classes
@@ -25,18 +28,18 @@ class VGG19:
                 print("IF include_top=True, input_shape MUST be (224,224,3), exiting...")
                 exit()
             else:
-                if self.name == "VGG" or self.name == "VGG19":
-                    base_model = vgg19.VGG19(weights=self.weights, include_top=True, classes=self.num_classes)
+                if self.name == "ResNet50" or self.name == "ResNet":
+                    base_model = ResNet50(weights=self.weights, include_top=False, classes=self.num_classes)
                 else:
-                    print("Invalid name, accepted 'VGG19', exiting...")
+                    print("Invalid name, accepted 'InceptionV3', exiting...")
                     exit()
                 output = base_model.output
         else:
             inputs = Input(shape=(self.input_width_height, self.input_width_height, self.channels))
-            if self.name == "VGG" or self.name == "VGG19":
-                base_model = vgg19.VGG19(weights=self.weights, include_top=False, input_tensor=inputs)
+            if self.name == "ResNet50" or self.name == "ResNet":
+                base_model = ResNet50(input_tensor=inputs, weights='imagenet', include_top=False)
             else:
-                print("Invalid name, accepted 'VGG19', exiting...")
+                print("Invalid name, accepted 'Inception', exiting...")
                 exit()
             flatten = Flatten(name='my_flatten')
             output_layer = Dense(self.num_classes, activation='softmax', name='my_predictions')
@@ -46,6 +49,6 @@ class VGG19:
 
         model = Model(input_layer, output)
         # model.summary(line_length=50)
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(self.learning_rate),
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
         return model
