@@ -226,7 +226,7 @@ def train_val(arguments, model, ds_info):
     del train_ds, val_ds
 
 
-def train_test(arguments, model, class_info, ds_info):
+def train_test(arguments, model, class_info, ds_info, conclude_wt_test=True):
 
     # Create tf.Dataset from ds_info e filepaths
     final_training_paths_ds = get_ds('final_training_paths', ds_info)
@@ -262,7 +262,8 @@ def train_test(arguments, model, class_info, ds_info):
         save_model(arguments, model)
 
     # Test the trained model over the test set
-    test(arguments, model, class_info, ds_info)
+    if conclude_wt_test:
+        test(arguments, model, class_info, ds_info)
 
 
 def test(arguments, model, class_info, ds_info):

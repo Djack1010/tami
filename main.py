@@ -3,18 +3,11 @@ import datetime
 import re
 import os
 import tensorflow as tf
-from code_models.standard_CNN import StandardCNN as b_cnn
-from code_models.standard_MLP import StandardMLP as b_mlp
-from code_models.Le_Net_CNN import LeNet as lenet_cnn
-from code_models.Alex_Net_CNN import AlexNet as alexnet_cnn
-from code_models.VGG16 import VGG16_19
-from code_models.VGG19 import VGG19
-from code_models.EfficientNet import EfficientNet
-from code_models.InceptionV3 import Inception
-from code_models.MobileNet import MobNet
-from code_models.ResNet50 import ResNet
-from code_models.Dense121 import DenseNet
-from code_models.FabNet import FabNet as fab_cnn
+
+from code_models.custom_code_models.standard_CNN import StandardCNN as b_cnn
+from code_models.custom_code_models.standard_MLP import StandardMLP as b_mlp
+from code_models.custom_code_models.custom_CNN import CustomCNN as c_cnn
+
 from utils import config
 import time
 from utils.generic_utils import print_log
@@ -27,10 +20,11 @@ def parse_args():
     parser = argparse.ArgumentParser(prog="TAMI", description='Tool for Analyzing Malware represented as Images')
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
-    group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'STANDARD_CNN', 'ALEX_NET',
-                                                                          'BASIC_LSTM', 'STANDARD_MLP', 'VGG16', 'VGG19',
-                                                                          'Inception', 'ResNet50','MobileNet','DenseNet','EfficientNet','QCNN',
-                                                                          'FAB_CONVNET'],
+    group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'ALEX_NET', 'STANDARD_CNN',
+                                                                          'STANDARD_MLP', 'CUSTOM_CNN', 'VGG16',
+                                                                          'VGG19', 'Inception', 'ResNet50',
+                                                                          'MobileNet', 'DenseNet', 'EfficientNet',
+                                                                          'QCNN'],
                        help='Choose the model to use between the ones implemented')
     group.add_argument('-d', '--dataset', required=True, type=str,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
@@ -49,7 +43,7 @@ def parse_args():
     group.add_argument('-i', '--image_size', required=False, type=str, default="100x1",
                        help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input '
                             '(reshape will be applied)')
-    group.add_argument('-w', '--weights', required=False, type=str, default=None,
+    group.add_argument('-w', '--weights', required=False, type=str, default='imagenet',
                        help="If you do not want random initialization of the model weights "
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
     group.add_argument('-r', '--learning_rate', required=False, type=float, default=0.01,
@@ -58,13 +52,15 @@ def parse_args():
                        help="Limit gradcam to X samples randomly extracted from the test set")
     group.add_argument('-gs', '--shape_gradcam', required=False, type=int, default=1,
                        help="Select gradcam target layer with at least shapeXshape (for comparing different models)")
-    group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train-val', 'train-test',
-                                                                                         'test', 'gradcam-cati',
-                                                                                         'gradcam-only'],
-                       help="Choose which mode run between 'train-val' (default), 'train-test', 'test' or 'gradcam'. "
+    group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train', 'train-val',
+                                                                                         'train-test', 'test',
+                                                                                         'gradcam-only', 'gradcam-cati'],
+                       help="Choose which mode run between 'train-val' (default), 'train-test', 'train', 'test' or "
+                            "'gradcam-[only|cati]'. "
                             "The 'train-val' mode will run a phase of training and validation on the training and "
                             "validation set, the 'train-test' mode will run a phase of training on the "
-                            "training+validation sets and then test on the test set, the 'test' mode will run only a "
+                            "training+validation sets and then test on the test set, the 'train' mode will run only a "
+                            "phase of training on the training+validation sets, the 'test' mode will run only a "
                             "phase of test on the test set. The 'gradcam-[cati|only]' will run the gradcam analysis on "
                             "the model provided. 'gradcam-only' will generate the heatmaps only, while 'gradcam-cati "
                             "will also run the cati tool to reverse process and select the code from the heatmap to "
@@ -117,17 +113,19 @@ def _model_selection(model_choice, nclasses):
     mod_class = None
     if model_choice == "STANDARD_CNN":
         mod_class = b_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
-    elif model_choice == "BASIC_MLP":
+    elif model_choice == "CUSTOM_CNN":
+        mod_class = c_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
+    elif model_choice == "STANDARD_MLP":
         mod_class = b_mlp(nclasses, config.VECTOR_DIM, learning_rate=config.LEARNING_RATE)
     elif model_choice == "LE_NET":
-        mod_class = lenet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
+        from code_models.sota_code_models.Le_Net_CNN import LeNet
+        mod_class = LeNet(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "ALEX_NET":
-        mod_class = alexnet_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
-    elif model_choice == "FAB_CONVNET":
-        mod_class = fab_cnn(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
+        from code_models.sota_code_models.Alex_Net_CNN import AlexNet
+        mod_class = AlexNet(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE)
     elif model_choice == "QCNN":
         try:
-            from code_models.QCNN_QConv import QCNNqconv
+            from code_models.sota_code_models.QCNN_QConv import QCNNqconv
             # Print a warning if IMG_DIM bigger than a threshold, QCNN requires small size images
             suggestion = 50
             if config.IMG_DIM > suggestion:
@@ -144,54 +142,59 @@ def _model_selection(model_choice, nclasses):
                       print_on_screen=True)
             exit()
     elif model_choice == "VGG16":
+        from code_models.sota_code_models.VGG16 import VGG16
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
         if config.CHANNELS != 3:
             print("VGG requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = VGG16_19(nclasses, config.IMG_DIM, config.CHANNELS, learning_rate=config.LEARNING_RATE) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = VGG16(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                          learning_rate=config.LEARNING_RATE)
     elif model_choice == "VGG19":
+        from code_models.sota_code_models.VGG19 import VGG19
         # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
         # and in any case, channels has to be 3
         if config.CHANNELS != 3:
             print("VGG requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = VGG19(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = VGG19(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                          learning_rate=config.LEARNING_RATE)
     elif model_choice == "ResNet50":
-        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
-        # and in any case, channels has to be 3
+        from code_models.sota_code_models.ResNet50 import ResNet
         if config.CHANNELS != 3:
             print("ResNet50 requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = ResNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = ResNet(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                           learning_rate=config.LEARNING_RATE)
     elif model_choice == "Inception":
-        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
-        # and in any case, channels has to be 3
+        from code_models.sota_code_models.InceptionV3 import Inception
         if config.CHANNELS != 3:
             print("INCEPTION requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = Inception(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = Inception(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                              learning_rate=config.LEARNING_RATE)
     elif model_choice == "MobileNet":
-        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
-        # and in any case, channels has to be 3
+        from code_models.sota_code_models.MobileNet import MobNet
         if config.CHANNELS != 3:
-            print("INCEPTION requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            print("MobileNet requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = MobNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = MobNet(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                           learning_rate=config.LEARNING_RATE)
     elif model_choice == "DenseNet":
-        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
-        # and in any case, channels has to be 3
+        from code_models.sota_code_models.Dense121 import DenseNet
         if config.CHANNELS != 3:
             print("Dense121 requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
             exit()
-        mod_class = DenseNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = DenseNet(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                             learning_rate=config.LEARNING_RATE)
     elif model_choice == "EfficientNet":
-        # NB. Setting include_top=True and thus accepting the entire struct, the input Shape MUST be 224x224x3
-        # and in any case, channels has to be 3
+        from code_models.sota_code_models.EfficientNet import EfficientNet
         if config.CHANNELS != 3:
-            print("EfficientNet requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, exiting...")
+            print("EfficientNet requires images with channels 3, please set --image_size <YOUR_IMAGE_SIZE>x3, "
+                  "exiting...")
             exit()
-        mod_class = EfficientNet(nclasses, config.IMG_DIM, config.CHANNELS) # weights=arguments.weights, include_top=arguments.include_top)
+        mod_class = EfficientNet(nclasses, config.IMG_DIM, config.CHANNELS, weights=config.WEIGHTS,
+                                 learning_rate=config.LEARNING_RATE)
     else:
         print("model {} not implemented yet...".format(model_choice))
         exit()
@@ -241,9 +244,11 @@ if __name__ == '__main__':
     config.IMG_DIM = args.image_size
     config.VECTOR_DIM = args.image_size * args.image_size * args.channels
     config.LEARNING_RATE = args.learning_rate
+    config.WEIGHTS = args.weights
 
     # SELECTING MODELS
     model_class = _model_selection(args.model, class_info['n_classes'])
+    model = None
 
     # Initialize variables and logs
     modes.initialization(args, class_info, ds_info, model_class)
@@ -275,7 +280,9 @@ if __name__ == '__main__':
                 exit()
 
         # Modes which required a training phase
-        if args.mode == 'train-val':
+        if args.mode == 'train':
+            modes.train_test(args, model, class_info, ds_info, conclude_wt_test=False)
+        elif args.mode == 'train-val':
             modes.train_val(args, model, ds_info)
         elif args.mode == 'train-test':
             modes.train_test(args, model, class_info, ds_info)
