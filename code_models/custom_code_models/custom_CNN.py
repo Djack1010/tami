@@ -56,7 +56,9 @@ class CustomCNN:
         model.add(layers.Dense(self.num_classes, activation='softmax'))
         # activation=hp.Choice('act_1', ['relu', 'tanh'])
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam',
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(hp.Choice('learning_rate',
+                                                                                values=[0.001, 0.01, 0.1],
+                                                                                default=0.01)),
                       metrics=['acc', Precision(name="prec"), Recall(name="rec"), AUC(name='auc')])
 
         return model
