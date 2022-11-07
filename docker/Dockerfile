@@ -17,7 +17,7 @@ RUN python -m pip install --upgrade pip setuptools wheel
 ADD requirements.txt /home/tami/requirements.txt
 RUN python -m pip install -r /home/tami/requirements.txt
 # Install Java and APKTool -> only for running CATI on container
-#  also commented lines in ./build.sh has to be restored
+#  also commented lines in ./manual_build.sh has to be restored
 #RUN apt-get -y install openjdk-11-jre-headless
 #ADD apktool /home/tami/apktool
 #RUN chmod +x apktool/apktool*

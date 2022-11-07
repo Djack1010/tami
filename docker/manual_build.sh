@@ -26,7 +26,7 @@ else
     #Uncomment the next line for installing also APKTOOL and being able to run CATI
     # Also, the Dockerfile has to be changed (and apktool files has to be placed in ext_tools/apktool)
     #cp -r ../ext_tools/apktool .
-    docker build -t tami_exp/tensorflow:latest .
+    docker build -t tami_exp/tensorflow:2.7.0 .
 fi
 
 #rm -rf apktool

@@ -138,7 +138,7 @@ def _model_selection(model_choice, nclasses):
             print_log("ERROR! Unfortunately, there are libraries conflict between the ones listed in "
                       "the requirements...\nQUICK_FIX: Run experiments with QCNN on a virtualenv/container installing "
                       "the 'full_requirements.txt' file ONLY! \n"
-                      "COMMANDS:(1) docker/build.sh --quantum (2) docker/run_container.sh --quantum",
+                      "COMMANDS:(1) docker/manual_build.sh --quantum (2) docker/run_container.sh --quantum",
                       print_on_screen=True)
             exit()
     elif model_choice == "VGG16":
