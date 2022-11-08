@@ -20,7 +20,7 @@ done
 
 if (($QUANTUM)); then
     cp ../requirements/full_requirements.txt ./requirements.txt
-    docker build -t tami_exp_quantum/tensorflow:latest .
+    docker build -t tami_exp_quantum/tensorflow:2.7.0 .
 else
     cp ../requirements/partial_requirements.txt ./requirements.txt
     #Uncomment the next line for installing also APKTOOL and being able to run CATI

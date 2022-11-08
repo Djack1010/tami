@@ -1,7 +1,28 @@
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd ${SCRIPTPATH}
 
-URLTAMI="https://martellone.iit.cnr.it/index.php/s/8qA8jtiK5SYtMk9/download/tami_expV1.0.tar"
+function usage {
+    echo "USAGE: $0 [--quantum]"
+    exit
+}
+
+QUANTUM=0
+
+for arg in "$@"; do
+    if [ "$arg" == "--quantum" ]; then
+        QUANTUM=1
+    else
+        echo "ERROR! Incorrect parameter '$arg'"
+        usage 
+    fi 
+done
+
+if (($QUANTUM)); then
+   URLTAMI="https://martellone.iit.cnr.it/index.php/s/Gam4Hw4Hia49yBX/download/tami_exp_quantumV1.0.tar"
+else
+   URLTAMI="https://martellone.iit.cnr.it/index.php/s/8qA8jtiK5SYtMk9/download/tami_expV1.0.tar"
+fi
+
 
 #docker save -o <path for generated tar file> <image name>
 echo "Downloading TAMI image from ocsdev cloud"
