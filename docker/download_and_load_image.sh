@@ -10,4 +10,9 @@ echo "Loading TAMI image in local docker instance (it may take a while...)"
 NAMETAMI=$(basename ${URLTAMI})
 docker load -i ${NAMETAMI}
 
-echo "Load completed, you can now run the script 'run_container.sh'"
+if [ $? -eq 0 ]; then
+   echo "Load completed, you can now run the script 'run_container.sh'"
+   rm ${NAMETAMI}
+else
+   echo "Load failed..."
+fi
