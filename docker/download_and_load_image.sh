@@ -10,4 +10,4 @@ echo "Loading TAMI image in local docker instance (it may take a while...)"
 NAMETAMI=$(basename ${URLTAMI})
 docker load -i ${NAMETAMI}
 
-echo "Load completed, you can now run run_container.sh"
+echo "Load completed, you can now run the script 'run_container.sh'"
