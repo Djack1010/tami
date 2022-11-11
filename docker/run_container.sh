@@ -36,17 +36,17 @@ echo "STARTING Tensorflow container"
 if (($QUANTUM)); then
   if (($GPU)); then
     echo "QUANTUM: true; GPU: true;"
-    docker run --gpus all --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp_quantum/tensorflow:2.7.0 bash
+    docker run --gpus all --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami --name="${USER}_$(date +%s)" -it tami_exp_quantum/tensorflow:2.7.0 bash
   else
     echo "QUANTUM: true; GPU: false;"
-    docker run --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp_quantum/tensorflow:2.7.0 bash
+    docker run --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami --name="${USER}_$(date +%s)" -it tami_exp_quantum/tensorflow:2.7.0 bash
   fi
 else
   if (($GPU)); then
     echo "QUANTUM: false; GPU: true;"
-    docker run --gpus all --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp/tensorflow:2.7.0 bash
+    docker run --gpus all --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami --name="${USER}_$(date +%s)" -it tami_exp/tensorflow:2.7.0 bash
   else
     echo "QUANTUM: false; GPU: false;"
-    docker run --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami -it tami_exp/tensorflow:2.7.0 bash
+    docker run --rm -u $(id -u):$(id -g) -v $(pwd)/..:/home/tami --name="${USER}_$(date +%s)" -it tami_exp/tensorflow:2.7.0 bash
   fi
 fi
