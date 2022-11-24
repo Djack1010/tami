@@ -17,7 +17,7 @@ from utils.gradcam_back_code import apply_gradcam
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog="TAMI", description='Tool for Analyzing Malware represented as Images')
+    parser = argparse.ArgumentParser(prog="python train_test.py", description='Tool for Analyzing Malware represented as Images')
     group = parser.add_argument_group('Arguments')
     # REQUIRED Arguments
     group.add_argument('-m', '--model', required=True, type=str, choices=['DATA', 'LE_NET', 'ALEX_NET', 'STANDARD_CNN',
@@ -48,23 +48,15 @@ def parse_args():
                             "(ex. 'imagenet' or path to weights to be loaded), not available for all models!")
     group.add_argument('-r', '--learning_rate', required=False, type=float, default=0.01,
                        help="Learning rate for training models")
-    group.add_argument('-gl', '--sample_gradcam', required=False, type=int, default=None,
-                       help="Limit gradcam to X samples randomly extracted from the test set")
-    group.add_argument('-gs', '--shape_gradcam', required=False, type=int, default=1,
-                       help="Select gradcam target layer with at least shapeXshape (for comparing different models)")
     group.add_argument('--mode', required=False, type=str, default='train-val', choices=['train', 'train-val',
                                                                                          'train-test', 'test',
-                                                                                         'gradcam-only', 'gradcam-cati'],
-                       help="Choose which mode run between 'train-val' (default), 'train-test', 'train', 'test' or "
-                            "'gradcam-[only|cati]'. "
+                                                                                         'gradcam-only'],
+                       help="Choose which mode run between 'train-val' (default), 'train-test', 'train', 'test'."
                             "The 'train-val' mode will run a phase of training and validation on the training and "
                             "validation set, the 'train-test' mode will run a phase of training on the "
                             "training+validation sets and then test on the test set, the 'train' mode will run only a "
                             "phase of training on the training+validation sets, the 'test' mode will run only a "
-                            "phase of test on the test set. The 'gradcam-[cati|only]' will run the gradcam analysis on "
-                            "the model provided. 'gradcam-only' will generate the heatmaps only, while 'gradcam-cati "
-                            "will also run the cati tool to reverse process and select the code from the heatmap to "
-                            "the decompiled smali (if provided, see cati README)")
+                            "phase of test on the test set. The 'gradcam' has been moved to 'post_processing.py'")
     group.add_argument('-v', '--version', action='version', version=f'{parser.prog} version {config.__version__}')
     # FLAGS
     group.add_argument('--exclude_top', dest='include_top', action='store_false',
@@ -99,8 +91,8 @@ def _check_args(arguments):
         print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
             arguments.dataset))
         exit()
-    if "gradcam-" in arguments.mode and args.load_model is None:
-        print("You need to specify a model to load with '-l MODEL_NAME' for the gradcam analysis, exiting...")
+    if "gradcam" in arguments.mode:
+        print("Gradcam processing has been moved to 'post_processing.py', exiting...")
         exit()
     if arguments.tuning is not None and arguments.tuning != 'hyperband' and arguments.tuning != 'random' \
             and arguments.tuning != 'bayesian':
@@ -257,12 +249,6 @@ if __name__ == '__main__':
     # If tuning, the model to use has specific architecture define by build_tuning function in model classes
     if args.tuning is not None:
         modes.tuning(args, model_class, ds_info)
-    # If gradcam, the model has to be loaded from memory (checked in check_args)
-    elif 'gradcam-' in args.mode:
-        # the '_loaded' refer to the information on which the model was trained on
-        model = modes.load_model(args, required_img=config.IMG_DIM, required_chan=config.CHANNELS,
-                                 required_numClasses=class_info['n_classes'])
-        apply_gradcam(args, model, class_info, cati=True if args.mode == 'gradcam-cati' else False)
 
     # Standard modes of training, validation and test
     else:

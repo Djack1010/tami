@@ -105,7 +105,7 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             exit()
 
     # create folder in /results/images for this execution
-    images_path = f"{config.main_path}results/images/{config.timeExec}_{arguments.model}"
+    images_path = f"{config.main_path}results/images/{config.timeExec}_{arguments.load_model}"
     os.mkdir(images_path)
 
     index = 0

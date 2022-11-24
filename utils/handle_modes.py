@@ -3,6 +3,7 @@ import kerastuner as kt
 from utils.generic_utils import print_log
 import utils.config as config
 import os
+import glob
 import datetime
 import time
 from utils.analyzing_data import multiclass_analysis
@@ -141,8 +142,10 @@ def initialization(arguments, class_info, ds_info, model_class):
     # GLOBAL SETTINGS
     config.AUTOTUNE = tf.data.experimental.AUTOTUNE
     config.CLASS_NAMES = class_info['class_names']
-    config.BATCH_SIZE = arguments.batch_size
-    config.DATA_REQ = model_class.input_type
+
+    if model_class is not None:
+        config.BATCH_SIZE = arguments.batch_size
+        config.DATA_REQ = model_class.input_type
 
     print("LOADING AND PRE-PROCESSING DATA")
 
@@ -156,21 +159,23 @@ def initialization(arguments, class_info, ds_info, model_class):
         mode_info = f"load_model = {arguments.load_model}" if arguments.load_model is not None \
             else \
             f"tuning = {arguments.tuning}" if arguments.tuning is not None else f"mode = {arguments.mode}"
-        print_log(f"INFO EXECUTION:"
-                  f"\n{mode_info}\nmodel = {arguments.model}\ndataset = {arguments.dataset}"
-                  f"\noutput_model = {arguments.output_model}\nepochs = {arguments.epochs}"
-                  f"\nbatch_size = {arguments.batch_size}\nlearning_rate = {arguments.learning_rate}"
-                  f"\ncaching = {arguments.caching}"
-                  f"\nresults per class = {arguments.classAnalysis}"
-                  f"\nmodel_input_type = {config.DATA_REQ}"
-                  f"\n----------------")
+        print_log(f"INFO EXECUTION:\n{mode_info}")
+        if model_class is not None:
+            print_log(f"model = {arguments.model}\ndataset = {arguments.dataset}"
+                      f"\noutput_model = {arguments.output_model}\nepochs = {arguments.epochs}"
+                      f"\nbatch_size = {arguments.batch_size}\nlearning_rate = {arguments.learning_rate}"
+                      f"\ncaching = {arguments.caching}"
+                      f"\nresults per class = {arguments.classAnalysis}"
+                      f"\nmodel_input_type = {config.DATA_REQ}"
+                      f"\n----------------")
 
         # DATA Info
         print_log(f"INFO DATA:"
                   f"\nnum_classes = {nclasses}\nclass_names= {class_names}"
-                  f"\nSize train-val-test= {size_train}-{size_val}-{size_test}"
-                  f"\ndata_type = {ds_info['ds_type']}"
-                  f"\nsize_{f'img = {config.IMG_DIM}x{config.CHANNELS}' if config.DATA_REQ == 'images' else f'vec = {config.VECTOR_DIM}'}")
+                  f"\nSize train-val-test= {size_train}-{size_val}-{size_test}")
+        if model_class is not None:
+            print_log(f"data_type = {ds_info['ds_type']}"
+                      f"\nsize_{f'img = {config.IMG_DIM}x{config.CHANNELS}' if config.DATA_REQ == 'images' else f'vec = {config.VECTOR_DIM}'}")
 
         for ds_class in class_names:
             print_log(f"{ds_class} : {class_info['info'][ds_class]['TRAIN']}-{class_info['info'][ds_class]['VAL']}-"
@@ -178,7 +183,7 @@ def initialization(arguments, class_info, ds_info, model_class):
         print_log("----------------")
     except KeyError as e:
         print("KeyError: {}".format(e))
-        print(f"POSSIBLE FIX: run 'python main.py -m DATA -d {arguments.dataset}'")
+        print(f"POSSIBLE FIX: run 'python train_test.py -m DATA -d {arguments.dataset}'")
         exit()
 
 
@@ -329,12 +334,21 @@ def save_model(arguments, model):
 def load_model(arguments, required_img, required_chan, required_numClasses):
     """
     The required_img_chan args is (None,None) when the model is loaded with no specific request on the img size. That is
-    the case of the apply_gradcam, when we want just to test the model, while in main.py we could also specify an
+    the case of the apply_gradcam, when we want just to test the model, while in train_test.py we could also specify an
     --image_size arguments and then check if the loaded model fits this requirements
     """
     print("LOADING MODEL")
-    model_path = config.main_path + 'saved_models/{}_m{}'\
-        .format(arguments.load_model, arguments.model)
+    if 'model' in arguments:
+        model_path = f"{config.main_path}saved_models/{arguments.load_model}_m{arguments.model}"
+    else:  # IF model not provide, trying to look for model to load with load_model variable into saved_models folder
+        candidates_models = glob.glob(f"{config.main_path}saved_models/{arguments.load_model}_m*")
+        candidates_models = [item for item in candidates_models if ".info" not in item] # remove .info folders
+        if len(candidates_models) == 1:
+            model_path = candidates_models[0]
+        else:
+            print_log(f"Unable to find a saved model with name '{arguments.load_model}' into saved_models folder, "
+                      f"exiting...", print_on_screen=True)
+
     if not os.path.isdir(model_path):
         print("Model not found in {}, exiting...".format(model_path))
         exit()
@@ -349,13 +363,15 @@ def load_model(arguments, required_img, required_chan, required_numClasses):
         class_names = stored_data["CLASS_NAMES"]
         channel = stored_data["CHANNELS"]
         img_dim = stored_data["IMG_DIM"]
+        config.CHANNELS = stored_data["CHANNELS"]
+        config.IMG_DIM = stored_data["IMG_DIM"]
         if (required_img is not None and img_dim != required_img) or \
                 (required_chan is not None and channel != required_chan) or \
                 (required_numClasses is not None and len(class_names) != required_numClasses):
             print("IMG_DIM, CHANNELS and/or number of output classes DIFFERS from the required! Exiting...")
             print("Asking img size with {}x{} on a {}-class classification problem, but model {}x{} and outputs on "
                   "{}-class, exiting...".format(required_img, required_chan, required_numClasses, img_dim, channel,
-                                    len(class_names)))
+                                                len(class_names)))
             exit()
 
     return model
