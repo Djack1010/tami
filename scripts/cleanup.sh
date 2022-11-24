@@ -15,9 +15,9 @@ elif [ "$1" == "--tuning" ]; then
   rm -rf ${SCRIPTPATH}/tuning/*
   echo "Cleaning /tuning folder"
 elif [ "$1" == "--complete" ]; then
-  ./cleanup.sh --logs --ignore
-  ./cleanup.sh --models --ignore
-  ./cleanup.sh --tuning --ignore
+  ${SCRIPTPATH}/scripts/cleanup.sh --logs --ignore
+  ${SCRIPTPATH}/scripts/cleanup.sh --models --ignore
+  ${SCRIPTPATH}/scripts/cleanup.sh --tuning --ignore
 fi
 
 if [ "$2" != "--ignore" ]; then
