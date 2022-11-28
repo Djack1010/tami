@@ -18,9 +18,9 @@ for arg in "$@"; do
 done
 
 if (($QUANTUM)); then
-   URLTAMI="https://martellone.iit.cnr.it/index.php/s/Gam4Hw4Hia49yBX/download/tami_exp_quantumV1.0.tar"
+   URLTAMI="https://martellone.iit.cnr.it/index.php/s/bGf9ZbE6LXNMTRD/download/tami_exp_quantumV1.5.1.tar"
 else
-   URLTAMI="https://martellone.iit.cnr.it/index.php/s/8qA8jtiK5SYtMk9/download/tami_expV1.0.tar"
+   URLTAMI="https://martellone.iit.cnr.it/index.php/s/aBqFF75iP4f28QY/download/tami_expV1.5.1.tar"
 fi
 
 
