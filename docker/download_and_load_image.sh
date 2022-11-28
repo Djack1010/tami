@@ -23,8 +23,9 @@ else
    URLTAMI="https://martellone.iit.cnr.it/index.php/s/aBqFF75iP4f28QY/download/tami_expV1.5.1.tar"
 fi
 
+# Use the following command to keep the repository and tag name in the saved file
+# docker save -o filename.tar <repo>:<tag>
 
-#docker save -o <path for generated tar file> <image name>
 echo "Downloading TAMI image from ocsdev cloud"
 wget ${URLTAMI}
 echo "Loading TAMI image in local docker instance (it may take a while...)"
