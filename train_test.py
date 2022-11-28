@@ -265,15 +265,22 @@ if __name__ == '__main__':
                 print("NB. check if image size is big enough (usually, at least 25x1)")
                 exit()
 
-        # Modes which required a training phase
-        if args.mode == 'train':
-            modes.train_test(args, model, class_info, ds_info, conclude_wt_test=False)
-        elif args.mode == 'train-val':
-            modes.train_val(args, model, ds_info)
-        elif args.mode == 'train-test':
-            modes.train_test(args, model, class_info, ds_info)
-        elif args.mode == 'test':
-            modes.test(args, model, class_info, ds_info)
+        try:
+            # Modes which required a training phase
+            if args.mode == 'train':
+                modes.train_test(args, model, class_info, ds_info, conclude_wt_test=False)
+            elif args.mode == 'train-val':
+                modes.train_val(args, model, ds_info)
+            elif args.mode == 'train-test':
+                modes.train_test(args, model, class_info, ds_info)
+            elif args.mode == 'test':
+                modes.test(args, model, class_info, ds_info)
+        except tf.errors.ResourceExhaustedError as e:
+            print_log(f"ERROR: {str(e)}", print_on_screen=True)
+            print_log(f"HINT1: You may try to reduce the batch size with '-b BATCH_SIZE' "
+                      f"(current value: {args.batch_size}).", print_on_screen=True)
+            print_log("HINT2: If failed during validation, you can run in train-test mode to avoid validation phase",
+                      print_on_screen=True)
 
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 

@@ -3,12 +3,12 @@ import datetime
 import re
 import os
 import tensorflow as tf
-from literature_models.afa_MLP_SVM import AfaMLPSVM as afaMLP
-from literature_models.afa_CNN_SVM import AfaCNNSVM as afaCNN
-from literature_models.cs_CNN import CsCNN
-from literature_models.IMCFN_CNN import IMCFN
-from literature_models.khj_CNN import KhjCNN
-from literature_models.M_CNN import MCNN
+from code_models.literature_models.afa_MLP_SVM import AfaMLPSVM as afaMLP
+from code_models.literature_models.afa_CNN_SVM import AfaCNNSVM as afaCNN
+from code_models.literature_models.cs_CNN import CsCNN
+from code_models.literature_models.IMCFN_CNN import IMCFN
+from code_models.literature_models.khj_CNN import KhjCNN
+from code_models.literature_models.M_CNN import MCNN
 from utils import config
 import time
 from utils.generic_utils import print_log
@@ -38,7 +38,7 @@ def parse_args():
                        help='Run Keras Tuner for tuning hyperparameters, options: [hyperband, random, bayesian]')
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
-    group.add_argument('-b', '--batch_size', required=False, type=int, default=32)
+    group.add_argument('-b', '--batch_size', required=False, type=int, default=16)
     group.add_argument('-i', '--image_size', required=False, type=str, default="100x1",
                        help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input '
                             '(reshape will be applied)')
@@ -157,6 +157,11 @@ if __name__ == '__main__':
         print('GPU device not found...')
     else:
         print('Found GPU at: {}'.format(device_name))
+        #device = tf.config.list_physical_devices('GPU')
+        #tf.config.experimental.set_memory_growth(device[0], True)
+        #tf.config.experimental.set_virtual_device_configuration(device[0],
+        #                                                        [tf.config.experimental.VirtualDeviceConfiguration(
+        #                                                            memory_limit=1024)])
 
     print_log("STARTING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
@@ -197,13 +202,20 @@ if __name__ == '__main__':
                 print("NB. check if image size is big enough (usually, at least 25x1)")
                 exit()
 
-        # Modes which required a training phase
-        if args.mode == 'train-val':
-            modes.train_val(args, model, ds_info)
-        elif args.mode == 'train-test':
-            modes.train_test(args, model, class_info, ds_info)
-        elif args.mode == 'test':
-            modes.test(args, model, class_info, ds_info)
+        try:
+            # Modes which required a training phase
+            if args.mode == 'train-val':
+                modes.train_val(args, model, ds_info)
+            elif args.mode == 'train-test':
+                modes.train_test(args, model, class_info, ds_info)
+            elif args.mode == 'test':
+                modes.test(args, model, class_info, ds_info)
+        except tf.errors.ResourceExhaustedError as e:
+            print_log(f"ERROR: {str(e)}", print_on_screen=True)
+            print_log(f"HINT1: You may try to reduce the batch size with '-b BATCH_SIZE' "
+                      f"(current value: {args.batch_size}).", print_on_screen=True)
+            print_log("HINT2: If failed during validation, you can run in train-test mode to avoid validation phase",
+                      print_on_screen=True)
 
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 

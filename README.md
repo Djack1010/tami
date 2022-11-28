@@ -87,7 +87,8 @@ pip install -r requirements/partial_requirements.txt
 ## Usage
 
 There are 2 scripts that handle Tami executions: `train_test.py` and `post_processing.py`. There are more utilities
-scripts in the `scripts` folder, such as backup data and cleaning up old results/logs.
+scripts in the `scripts` folder, such as backup data and cleaning up old results/logs. Also, the script 
+`main_literature.py` (which is based on the `train_test.py` one) allows to train and test DL models from the literature.
 
 ### Train and test models
 
