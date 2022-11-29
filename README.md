@@ -187,12 +187,68 @@ Arguments:
 
 ### Prepare the Dataset
 
-The script `pre_processing.py` converts a dataset of files into a dataset of images. The original files are casted to 
-`.png` files and converted in either RGB or Grayscale pictures (or both). It is required to input a dataset of files 
-splits in a folder tree structure such as:
+The script `pre_processing.py` provides two functionalities:
+1. split a set of files into training, validation and test set
+2. convert a dataset of files into a dataset of images. 
+
+See further information on the arguments required with:
+
+```commandline
+python pre_processing.py --help
+usage: python pre_processing.py [-h] -d DATASET [--mode {rgb-gray,rgb,gray,ds}] [-p PERCENTAGE] [-v]
+
+Tool for Analyzing Malware represented as Images
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Arguments:
+  -d DATASET, --dataset DATASET
+                        the dataset path
+  --mode {rgb-gray,rgb,gray,ds}
+                        Choose which mode run between 'rgb-gray' (default), 'rgb', 'gray', and 'ds'.The 'rgb-gray' will convert the dataset in both grayscale and rgb colours, while
+                        the other two modes ('rgb' and 'gray') only in rgb colours and grayscale, respectively.
+  -p PERCENTAGE, --percentage PERCENTAGE
+                        Percentage for training, validation, and test set when --mode=ds. FORMAT ACCEPTED = X-Y-Z , which represent the training (X), validation (Y) and test (Z)
+                        percentage, respectively. DEFAULT value is 80-10-10
+  -v, --version         show program's version number and exit
+```
+
+#### Split dataset
+
+The `--mode=ds` split the input dataset into training, validation and test set. It can be set the percentage of each 
+set with `-p <TRAINPERC>-<VALPERC>-<TESTPERC>`. The input dataset **MUST** be in the following folder tree structure:
 
 ```
-├─ /YOUR_DATASET 	
+└─ /YOUR_DATASET 	
+    ├─ /OUTPUT_CLASS_1
+    |   ├─ YOUR_FILE_1
+    |   ├─ ...
+    |   └─ YOUR_FILE_N
+    ├─ ...
+    └─ /OUTPUT_CLASS_M
+        ├─ YOUR_FILE_1
+        ├─ ...
+        └─ YOUR_FILE_K
+```
+
+The execution will output the dataset in the folder tree structure format required by the other Tami functionalities 
+(such as, the input folder tree structure required by the mode `--mode=[rgb-gray|rgb|gray]`, see next doc subsection)
+
+Example: 
+
+```commandline
+python pre_processing.py -d <RAW_DATASET> --mode=ds --percentage=80-10-10
+```
+
+#### Convert dataset
+
+The `--mode=[rgb-gray|rgb|gray]` converts a dataset of files into a dataset of images. The original files are cast to 
+`.png` and converted into RGB or Grayscale pictures (or both). It is required to input a dataset of file splits in a 
+folder tree structure such as the following (**HINT**: it is the output of `--mode=ds`):
+
+```
+└─ /YOUR_DATASET 	
     ├─ /training
     |   ├─ /train
     |   |   ├─ /OUTPUT_CLASS_1
@@ -214,29 +270,9 @@ splits in a folder tree structure such as:
         └─ /OUTPUT_CLASS_M
 ```
 
-The number of samples/files for each OUTPUT_CLASS may vary, but the number of OUTPUT_CLASS **MUST** be the same (and 
-also consistent with the names) in all the dataset folder (`training/train`, `/traning/val`, and `/test`). See the 
-folder tree structure of `DATASET/dataset_test_malware` as example.
-
-See further information on the arguments required with:
-
-```commandline
-python pre_processing.py --help
-usage: python pre_processing.py [-h] -d DATASET [--mode {rgb-gray,rgb,gray}] [-v]
-
-Tool for Analyzing Malware represented as Images
-
-optional arguments:
-  -h, --help            show this help message and exit
-
-Arguments:
-  -d DATASET, --dataset DATASET
-                        the dataset path, must have the folder structure: training/train, training/val and test,in each of this folders, one folder per class (see dataset_test)
-  --mode {rgb-gray,rgb,gray}
-                        Choose which mode run between 'rgb-gray' (default), 'rgb', and 'gray'.The 'rgb-gray' will convert the dataset in both grayscale and rgb colours, while the
-                        other two modes ('rgb' and 'gray') only in rgb colours and grayscale, respectively.
-  -v, --version         show program's version number and exit
-```
+The number of samples/files for each OUTPUT_CLASS may differ, but the number of OUTPUT_CLASS **MUST** be the same (and 
+also consistent with the names) in all the dataset folders (`training/train`, `/traning/val`, and `/test`). See the 
+folder tree structure of `DATASET/dataset_test_malware` as an example.
 
 ## Authors & References
 

@@ -1,11 +1,13 @@
 import argparse
 import datetime
 import os
+import re
 
 from utils import config
 import time
 from utils.generic_utils import print_log
 from utils.convert_binary2image import binary2image
+from utils.preprocessing_data import split_dataset
 
 
 def parse_args():
@@ -14,29 +16,47 @@ def parse_args():
     group = parser.add_argument_group('Arguments')
     # OPTIONAL Arguments
     group.add_argument('-d', '--dataset', required=True, type=str, default=None,
-                       help='the dataset path, must have the folder structure: training/train, training/val and test,'
-                            'in each of this folders, one folder per class (see dataset_test)')
-    group.add_argument('--mode', required=False, type=str, default='rgb-gray', choices=['rgb-gray', 'rgb', 'gray'],
-                       help="Choose which mode run between 'rgb-gray' (default), 'rgb', and 'gray'."
+                       help='the dataset path')
+    group.add_argument('--mode', required=False, type=str, default='rgb-gray',
+                       choices=['rgb-gray', 'rgb', 'gray', 'ds'],
+                       help="Choose which mode run between 'rgb-gray' (default), 'rgb', 'gray', and 'ds'."
                             "The 'rgb-gray' will convert the dataset in both grayscale and rgb colours, while the "
                             "other two modes ('rgb' and 'gray') only in rgb colours and grayscale, respectively.")
+    group.add_argument('-p', '--percentage', required=False, type=str, default='80-10-10',
+                       help='Percentage for training, validation, and test set when --mode=ds. '
+                            'FORMAT ACCEPTED = X-Y-Z , which represent the training (X), validation (Y) and test (Z) '
+                            'percentage, respectively. DEFAULT value is 80-10-10')
     group.add_argument('-v', '--version', action='version', version=f'{parser.prog} version {config.__version__}')
     arguments = parser.parse_args()
     return arguments
 
 
 def _check_args(arguments):
-    if not os.path.isdir(config.main_path + arguments.dataset):
-        print('Cannot find dataset in {}, exiting...'.format(config.main_path + arguments.dataset))
-        exit()
+    if not os.path.isdir(arguments.dataset):
+        if os.path.isdir(config.main_path + arguments.dataset):
+            setattr(arguments, "dataset", config.main_path + arguments.dataset)
+        else:
+            print('Cannot find dataset in {}, exiting...'.format(arguments.dataset))
+            exit()
     # Check Dataset struct: should be in folder tree training/[train|val] e test
-    if not os.path.isdir(config.main_path + arguments.dataset + "/test") or \
-            not os.path.isdir(config.main_path + arguments.dataset + "/training/val") or \
-            not os.path.isdir(config.main_path + arguments.dataset + "/training/train"):
-        print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
-            arguments.dataset))
-        exit()
-    return
+    if arguments.mode != 'ds':
+        if not os.path.isdir(arguments.dataset + "/test") or \
+                not os.path.isdir(arguments.dataset + "/training/val") or \
+                not os.path.isdir(arguments.dataset + "/training/train"):
+            print(f"Dataset '{arguments.dataset}' should contain folders 'test, training/train and training/val'...")
+            exit()
+    else:  # ds mode, check dataset percentage
+        if re.match(r"^\d{1,2}-\d{1,2}-\d{1,2}$", arguments.percentage):
+            train_perc = int(arguments.percentage.split("-")[0])
+            val_perc = int(arguments.percentage.split("-")[1])
+            test_perc = int(arguments.percentage.split("-")[2])
+            if (train_perc + val_perc + test_perc) != 100:
+                print(f"Percentage {train_perc}-{val_perc}-{test_perc} does not sum up to 100, exiting...")
+                exit()
+            setattr(arguments, "dataset_percentages", [train_perc, val_perc, test_perc])
+        else:
+            print("Invalid percentage '-p X-Y-Z' (see --help), exiting...")
+            exit()
 
 
 if __name__ == '__main__':
@@ -61,7 +81,10 @@ if __name__ == '__main__':
               f"\ndataset = {args.dataset}"
               f"\n----------------")
 
-    binary2image(config.main_path + args.dataset, width=None, thread_number=5, mode=args.mode)
+    if args.mode in ['rgb-gray', 'rgb', 'gray']:
+        binary2image(args.dataset, width=None, thread_number=5, mode=args.mode)
+    elif args.mode == 'ds':
+        split_dataset(args.dataset, args.dataset_percentages)
 
     # Check if any 'ERROR!' print by the thread in the log file
     # TODO: naive approach, improve checks and errors handling

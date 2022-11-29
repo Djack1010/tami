@@ -3,6 +3,9 @@ import numpy as np
 import pickle
 import pathlib
 from random import shuffle, choice
+from utils import config
+import shutil
+from utils.generic_utils import print_log
 
 
 def get_info_dataset(dataset_path, update=False):
@@ -19,7 +22,7 @@ def get_info_dataset(dataset_path, update=False):
             class_info = data['class_info']
             ds_info = data['ds_info']
 
-            # CHECKS if the paths stored match the DB
+            # CHECKS if the paths stored match the DS
             # TODO: This check just pick 3 elements and check existence, can be improved
             if not os.path.exists(choice(ds_info['train_paths'])) or not os.path.exists(choice(ds_info['val_paths'])) \
                     or not os.path.exists(choice(ds_info['test_paths'])):
@@ -77,3 +80,57 @@ def get_info_dataset(dataset_path, update=False):
 
     return class_info, ds_info
 
+
+def split_dataset(dataset_path, percentages):
+    # os.walk is a generator and calling next will get the first result in the form of a 3-tuple
+    # (dirpath, dirnames, filenames).
+    dataset = {}
+    output_classes = next(os.walk(dataset_path))[1]
+    warning = False
+
+    for oc in output_classes:
+        dataset[oc] = {"total": next(os.walk(f"{dataset_path}/{oc}"))[2]}
+        # shuffle to randomize datset generation
+        shuffle(dataset[oc]['total'])
+        train_val = int(len(dataset[oc]['total']) * (percentages[0] / 100))
+        val_val = int(len(dataset[oc]['total']) * (percentages[1] / 100))
+        dataset[oc]['train'] = dataset[oc]['total'][:train_val]
+        dataset[oc]['val'] = dataset[oc]['total'][train_val:train_val+val_val]
+        dataset[oc]['test'] = dataset[oc]['total'][train_val+val_val:]
+
+    # Create DS name based on the input dataset name
+    dataset_name = dataset_path.split('/')[-1] if dataset_path.split('/')[-1] != "" else dataset_path.split('/')[-2]
+    dataset_name = f"{dataset_name}_TAMIDS"
+
+    print("---- PRE-DATASET GENERATION: recap on found samples ----")
+    print(f"Output Classes ({len(output_classes)}): {output_classes}")
+    print("Split dataset into 'OUTPUT_CLASS -> TRAINING - VALIDATION - TEST' samples")
+    for oc in output_classes:
+        print(f"{oc} -> {len(dataset[oc]['train'])} - {len(dataset[oc]['val'])} - {len(dataset[oc]['test'])}")
+        if len(dataset[oc]['train']) < 100 or len(dataset[oc]['val']) < 30 or len(dataset[oc]['test']) < 30:
+            warning = True
+    print(f"(Over)Writing the dataset in '{config.main_path}DATASETS/{dataset_name}'")
+    if warning:
+        print(f"WARNING! The dataset numbers seem incorrect (too few samples)")
+
+    proceed = str(input("Do you confirm these dataset? [Y/n] \n"))
+    if proceed.lower() == "n" or proceed.lower() == "no":
+        print_log("User stopped the dataset split, exiting...")
+        exit()
+
+    # Delete previous DS (if present)
+    if os.path.exists(f"{config.main_path}/DATASETS/{dataset_name}"):
+        shutil.rmtree(f"{config.main_path}/DATASETS/{dataset_name}")
+
+    # Copy files in the DS
+    for oc in output_classes:
+        os.makedirs(f"{config.main_path}/DATASETS/{dataset_name}/training/train/{oc}", exist_ok=True)
+        os.makedirs(f"{config.main_path}/DATASETS/{dataset_name}/training/val/{oc}", exist_ok=True)
+        os.makedirs(f"{config.main_path}/DATASETS/{dataset_name}/test/{oc}", exist_ok=True)
+        for set in ['train', 'val', 'test']:
+            for x in dataset[oc][set]:
+                shutil.copy(f"{dataset_path}/{oc}/{x}",
+                            f"{config.main_path}/DATASETS/{dataset_name}/"
+                            f"{'' if set == 'test' else 'training/'}{set}/{oc}/{x}")
+
+    print_log(f"Dataset created in '{config.main_path}DATASETS/{dataset_name}'", print_on_screen=True)
