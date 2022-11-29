@@ -45,6 +45,17 @@ def parse_args():
 
 
 def _check_args(arguments):
+    if arguments.dataset is not None:
+        if not os.path.isdir(config.main_path + arguments.dataset):
+            print('Cannot find dataset in {}, exiting...'.format(config.main_path + arguments.dataset))
+            exit()
+        # Check Dataset struct: should be in folder tree training/[train|val] e test
+        if not os.path.isdir(config.main_path + arguments.dataset + "/test") or \
+                not os.path.isdir(config.main_path + arguments.dataset + "/training/val") or \
+                not os.path.isdir(config.main_path + arguments.dataset + "/training/train"):
+            print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
+                arguments.dataset))
+            exit()
     if "gradcam-" in arguments.mode:
         if arguments.load_model is None:
             print("ERROR! You need to load a model with '-l MODEL_NAME' for the gradcam analysis, exiting...")
