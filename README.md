@@ -37,8 +37,8 @@ Scripts Usage:
 > 
 > run_container.sh [--no-gpu] [--quantum]
 
-```
-# DEFAULT EXECUTION
+Default execution:
+```commandline
 docker/download_and_load_image.sh
 docker/run_container.sh
 ```
@@ -55,8 +55,9 @@ Scripts Usage:
 > 
 > run_container.sh [--no-gpu] [--quantum]
 
-```
-# DEFAULT EXECUTION
+Default execution:
+
+```commandline
 docker/build_image.sh
 docker/run_container.sh
 ```
@@ -67,7 +68,7 @@ docker/run_container.sh
 
 The script `install.sh` should take care of the gist descriptor tool integration. If something fails, manually install
 the repo:
-```
+```commandline
 git clone https://github.com/tuttieee/lear-gist-python
 ```
 
@@ -78,7 +79,7 @@ git clone https://github.com/tuttieee/lear-gist-python
 
 You can run the script `install.sh` to set up all the necessary dependencies (excluding the GPU ones).
 Then, you should install all the necessary libraries with `pip`
-```
+```commandline
 pip install -r requirements/partial_requirements.txt 
 ```
 
@@ -86,9 +87,10 @@ pip install -r requirements/partial_requirements.txt
 
 ## Usage
 
-There are 2 scripts that handle Tami executions: `train_test.py` and `post_processing.py`. There are more utilities
-scripts in the `scripts` folder, such as backup data and cleaning up old results/logs. Also, the script 
-`main_literature.py` (which is based on the `train_test.py` one) allows to train and test DL models from the literature.
+There are 3 scripts that handle Tami executions: `train_test.py` (the main one) `pre_processing.py`, and 
+`post_processing.py`. There are more utilities scripts in the `scripts` folder, such as backup data and cleaning up old 
+results/logs. Also, the script `main_literature.py` (which is based on the `train_test.py` one) allows to train and 
+test a specific set of DL models from the literature (for 'related works' comparison).
 
 ### Train and test models
 
@@ -97,7 +99,8 @@ assessment (through tuning the hyperparameters), save and load trained models, a
 training phase.
 
 See further information on the arguments required with:
-```
+
+```commandline
 python train_test.py --help
 usage: python train_test.py [-h] -m {DATA,LE_NET,ALEX_NET,STANDARD_CNN,STANDARD_MLP,CUSTOM_CNN,VGG16,VGG19,Inception,ResNet50,MobileNet,DenseNet,EfficientNet,QCNN} -d DATASET
                             [-o OUTPUT_MODEL] [-l LOAD_MODEL] [-t {hyperband,random,bayesian}] [-e EPOCHS] [-b BATCH_SIZE] [-i IMAGE_SIZE] [-w WEIGHTS] [-r LEARNING_RATE]
@@ -152,7 +155,8 @@ In detail, it applies the Grad-cam on a loaded (and trained) model, and then it 
 generated heatmaps.
 
 See further information on the arguments required with:
-```
+
+```commandline
 python post_processing.py --help
 usage: python post_processing.py [-h] [-l LOAD_MODEL] [-d DATASET] [-gl SAMPLE_GRADCAM] [-gs SHAPE_GRADCAM] [-sf [SSIM_FOLDERS [SSIM_FOLDERS ...]]]
                                  [--mode {IFIM-SSIM,gradcam-only,gradcam-cati}] [-v] [--include_all]
@@ -179,6 +183,59 @@ Arguments:
                         heatmap to the decompiled smali (if provided, see cati README)
   -v, --version         show program's version number and exit
   --include_all         Include all possible heatmaps in the IFIM-SSIM analysis (default, choose a random subset)
+```
+
+### Prepare the Dataset
+
+The script `pre_processing.py` converts a dataset of files into a dataset of images. The original files are casted to 
+`.png` files and converted in either RGB or Grayscale pictures (or both). It is required to input a dataset of files 
+splits in a folder tree structure such as:
+
+```
+├─ /YOUR_DATASET 	
+    ├─ /training
+    |   ├─ /train
+    |   |   ├─ /OUTPUT_CLASS_1
+    |   |   |   ├─ YOUR_FILE_1
+    |   |   |   ├─ ...
+    |   |   |   └─ YOUR_FILE_N
+    |   |   ├─ ...
+    |   |   └─ /OUTPUT_CLASS_M
+    |   |       ├─ YOUR_FILE_1
+    |   |       ├─ ...
+    |   |       └─ YOUR_FILE_K
+    |   └─ /val
+    |       ├─ /OUTPUT_CLASS_1
+    |       ├─ ...
+    |       └─ /OUTPUT_CLASS_M
+    └─ /test
+        ├─ /OUTPUT_CLASS_1
+        ├─ ...
+        └─ /OUTPUT_CLASS_M
+```
+
+The number of samples/files for each OUTPUT_CLASS may vary, but the number of OUTPUT_CLASS **MUST** be the same (and 
+also consistent with the names) in all the dataset folder (`training/train`, `/traning/val`, and `/test`). See the 
+folder tree structure of `DATASET/dataset_test_malware` as example.
+
+See further information on the arguments required with:
+
+```commandline
+python pre_processing.py --help
+usage: python pre_processing.py [-h] -d DATASET [--mode {rgb-gray,rgb,gray}] [-v]
+
+Tool for Analyzing Malware represented as Images
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Arguments:
+  -d DATASET, --dataset DATASET
+                        the dataset path, must have the folder structure: training/train, training/val and test,in each of this folders, one folder per class (see dataset_test)
+  --mode {rgb-gray,rgb,gray}
+                        Choose which mode run between 'rgb-gray' (default), 'rgb', and 'gray'.The 'rgb-gray' will convert the dataset in both grayscale and rgb colours, while the
+                        other two modes ('rgb' and 'gray') only in rgb colours and grayscale, respectively.
+  -v, --version         show program's version number and exit
 ```
 
 ## Authors & References
