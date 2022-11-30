@@ -226,9 +226,9 @@ if __name__ == '__main__':
     # Check if tensorflow can access the GPU
     device_name = tf.test.gpu_device_name()
     if not device_name:
-        print('GPU device not found...')
+        print_log('LOADING TAMI: GPU device not found...')
     else:
-        print('Found GPU at: {}'.format(device_name))
+        print_log('LOADING TAMI: Found GPU at: {}'.format(device_name))
 
     print_log("STARTING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
