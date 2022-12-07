@@ -47,7 +47,11 @@ class GradCAM:
         else:
             self.target_layer_name = target_layer_name
 
-    def compute_heatmap(self, image, classIdx, eps=1e-8):
+    def compute_heatmap(self, image, **kwargs):
+
+        class_index = kwargs.get('class_index', None)
+        eps = kwargs.get('eps', 1e-8)
+
         # construct our gradient model by supplying (1) the inputs
         # to our pre-trained model, (2) the output of the (presumably)
         # final 4D layer in the network, and (3) the output of the
@@ -63,7 +67,7 @@ class GradCAM:
             # associated with the specific class index
             inputs = tf.cast(image, tf.float32)
             (convOutputs, predictions) = grad_model(inputs)
-            loss = predictions[:, classIdx]
+            loss = predictions[:, class_index]
 
         # use automatic differentiation to compute the gradients
         grads = tape.gradient(loss, convOutputs)
@@ -101,14 +105,3 @@ class GradCAM:
 
         # return the resulting heatmap to the calling function
         return heatmap
-
-    def overlay_heatmap(self, heatmap, image, alpha=0.5,
-                        colormap=cv2.COLORMAP_VIRIDIS):
-        # apply the supplied color map to the heatmap and then
-        # overlay the heatmap on the input image
-        heatmap = cv2.applyColorMap(heatmap, colormap)
-        output = cv2.addWeighted(image, alpha, heatmap, 1 - alpha, 0)
-
-        # return a 2-tuple of the color mapped heatmap and the output,
-        # overlaid image
-        return heatmap, output
