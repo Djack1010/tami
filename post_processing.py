@@ -28,7 +28,9 @@ def parse_args():
                        help="Select gradcam target layer with at least shapeXshape (for comparing different models)")
     group.add_argument('-sf', '--ssim_folders', required=False, nargs='*', default=None,
                        help="List of gradcam results folder to compare with IF-SSIM and IM-SSIM")
-    group.add_argument('--mode', required=False, type=str, default='gradcam-only', choices=['IFIM-SSIM', 'gradcam-only',
+    group.add_argument('--mode', required=False, type=str, default='gradcam-standard', choices=['IFIM-SSIM',
+                                                                                            'gradcam-standard',
+                                                                                            'gradcam-test',
                                                                                             'gradcam-cati'],
                        help="Choose which mode run between 'gradcam-only' (default), 'gradcam-cati', 'IFIM-SSIM'"
                             "The 'gradcam-[cati|only]' will run the gradcam analysis on "
@@ -98,7 +100,10 @@ if __name__ == '__main__':
     # STRUCT of class_info = {'class_names': np.array(string), 'n_classes': int,
     # "train_size": int, "val_size": int, "test_size": int, 'info': dict}
     # for name in class_info['class_names'] the info dict contains = {'TRAIN': int, 'VAL': int, 'TEST': int, 'TOT': int}
-    class_info, ds_info = get_info_dataset(config.main_path + args.dataset) if args.dataset is not None else None, None
+    if args.dataset is not None:
+        class_info, ds_info = get_info_dataset(config.main_path + args.dataset)
+    else:
+        class_info, ds_info = None, None
 
     # GLOBAL SETTINGS FOR THE EXECUTIONS
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
