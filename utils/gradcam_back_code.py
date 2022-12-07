@@ -1,7 +1,9 @@
 import threading
 from tqdm import tqdm
 from time import sleep
-from code_models.custom_code_models.gradcam import GradCAM
+from code_models.gradcams.first_gradcam import GradCAM as Gradcam_Standard
+from code_models.gradcams.second_gradcam import GradCAM as Gradcam_Test
+from code_models.gradcams.gradcam_utils import overlay_heatmap
 from utils import config
 from utils.handle_modes import process_path
 import tensorflow as tf
@@ -92,7 +94,14 @@ def enumerate_pixel(x, y, pic, start_zero=True):
 def apply_gradcam(arguments, model, class_info, cati=True):
 
     # initialize the gradient class activation map
-    cam = GradCAM(model, target_layer_min_shape=arguments.shape_gradcam)
+    cam = None
+    if arguments.mode == 'gradcam-standard':
+        cam = Gradcam_Standard(model, target_layer_min_shape=arguments.shape_gradcam)
+    elif arguments.mode == 'gradcam-test':
+        cam = Gradcam_Test(model, target_layer_min_shape=arguments.shape_gradcam)
+    else:
+        print(f"Gradcam required not found, exiting...")
+        exit()
 
     if cati:
         # hardcoded path to cati folder with decompiled results
@@ -105,14 +114,14 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             exit()
 
     # create folder in /results/images for this execution
-    images_path = f"{config.main_path}results/images/{config.timeExec}_{arguments.load_model}"
+    images_path = f"{config.main_path}results/images/{config.timeExec}_{arguments.load_model}_{arguments.mode}"
     os.mkdir(images_path)
 
     index = 0
     for img_class in class_info["class_names"]:
 
         index += 1
-        print(f"GradCAM on call family '{img_class}' - {index} out of {len(class_info['class_names'])}")
+        print(f"GradCAM '{arguments.mode}' on output class '{img_class}' - {index} out of {len(class_info['class_names'])}")
 
         # Adding also a '/' to ensure path correctness
         label_path = config.main_path + arguments.dataset + "/test/" + img_class
@@ -160,7 +169,7 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             image, _ = process_path(complete_path)
             image = tf.expand_dims(image, 0)
 
-            # use the network to make predictions on the input imag and find
+            # use the network to make predictions on the input image and find
             # the class label index with the largest corresponding probability
             preds = model.predict(image)
             i = np.argmax(preds[0])
@@ -175,14 +184,14 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             #print("[INFO] {}".format(label))
 
             # build the heatmap
-            heatmap = cam.compute_heatmap(image, i)
+            heatmap = cam.compute_heatmap(image, class_index=i)
 
             # resize heatmap to size of origin file and copy to stored later
             # at this point the heatmap contains integer value scaled [0, 255]
             heatmap_origin_size = cv2.resize(heatmap.copy(), (orig.shape[1], orig.shape[0]))
 
             # resize the heatmap to the original input image dimensions and overlay heatmap on top of the image
-            (heatmap, output) = cam.overlay_heatmap(cv2.resize(heatmap, (orig.shape[1], orig.shape[0])), orig, alpha=0.5)
+            (heatmap, output) = overlay_heatmap(cv2.resize(heatmap, (orig.shape[1], orig.shape[0])), orig, alpha=0.5)
 
             # resize images
             orig = imutils.resize(orig, width=400)
