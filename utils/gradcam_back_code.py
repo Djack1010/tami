@@ -1,11 +1,14 @@
 import threading
 from tqdm import tqdm
 from time import sleep
-from code_models.gradcams.first_gradcam import GradCAM as Gradcam_Standard
-from code_models.gradcams.second_gradcam import GradCAM as Gradcam_Test
+from code_models.gradcams.gradcamStandard1 import GradCAM as Gradcam_stand1
+from code_models.gradcams.gradcamStandard2 import GradCAM as Gradcam_stand2
+from code_models.gradcams.gradcamPlusPlus import GradCAM as Gradcam_plusplus
+from code_models.gradcams.scorecam import GradCAM as Scorecam
 from code_models.gradcams.gradcam_utils import overlay_heatmap
 from utils import config
 from utils.handle_modes import process_path
+from utils.generic_utils import print_log
 import tensorflow as tf
 import os
 import numpy as np
@@ -95,10 +98,16 @@ def apply_gradcam(arguments, model, class_info, cati=True):
 
     # initialize the gradient class activation map
     cam = None
-    if arguments.mode == 'gradcam-standard':
-        cam = Gradcam_Standard(model, target_layer_min_shape=arguments.shape_gradcam)
-    elif arguments.mode == 'gradcam-test':
-        cam = Gradcam_Test(model, target_layer_min_shape=arguments.shape_gradcam)
+    if arguments.mode == 'cam-gradcam_st1':
+        cam = Gradcam_stand1(model, target_layer_min_shape=arguments.shape_gradcam)
+    elif arguments.mode == 'cam-gradcam_st2' or arguments.mode == 'cam-gradcam_st2-guided':
+        cam = Gradcam_stand2(model, arguments, class_info, target_layer_min_shape=arguments.shape_gradcam)
+    elif arguments.mode == 'cam-gradcam++' or arguments.mode == 'cam-gradcam++-guided':
+        cam = Gradcam_plusplus(model, arguments, class_info, target_layer_min_shape=arguments.shape_gradcam)
+    elif arguments.mode == 'cam-scorecam' or arguments.mode == 'cam-scorecam-guided':
+        cam = Scorecam(model, arguments, class_info, target_layer_min_shape=arguments.shape_gradcam)
+    elif arguments.mode == 'cam-scorecam_fast' or arguments.mode == 'cam-scorecam_fast-guided':
+        cam = Scorecam(model, arguments, class_info, target_layer_min_shape=arguments.shape_gradcam, max_N=10)
     else:
         print(f"Gradcam required not found, exiting...")
         exit()
@@ -121,7 +130,8 @@ def apply_gradcam(arguments, model, class_info, cati=True):
     for img_class in class_info["class_names"]:
 
         index += 1
-        print(f"GradCAM '{arguments.mode}' on output class '{img_class}' - {index} out of {len(class_info['class_names'])}")
+        print_log(f"GradCAM '{arguments.mode}' on output class '{img_class}' - {index} out of "
+                  f"{len(class_info['class_names'])}", print_on_screen=True)
 
         # Adding also a '/' to ensure path correctness
         label_path = config.main_path + arguments.dataset + "/test/" + img_class
@@ -171,7 +181,7 @@ def apply_gradcam(arguments, model, class_info, cati=True):
 
             # use the network to make predictions on the input image and find
             # the class label index with the largest corresponding probability
-            preds = model.predict(image)
+            preds = model.predict(image, steps=1)
             i = np.argmax(preds[0])
 
             # decode the ImageNet predictions to obtain the human-readable label
@@ -186,45 +196,8 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             # build the heatmap
             heatmap = cam.compute_heatmap(image, class_index=i)
 
-            # resize heatmap to size of origin file and copy to stored later
-            # at this point the heatmap contains integer value scaled [0, 255]
-            heatmap_origin_size = cv2.resize(heatmap.copy(), (orig.shape[1], orig.shape[0]))
-
-            # resize the heatmap to the original input image dimensions and overlay heatmap on top of the image
-            (heatmap, output) = overlay_heatmap(cv2.resize(heatmap, (orig.shape[1], orig.shape[0])), orig, alpha=0.5)
-
-            # resize images
-            orig = imutils.resize(orig, width=400)
-            heatmap = imutils.resize(heatmap, width=400)
-            output = imutils.resize(output, width=400)
-
-            # create a black background to include text
-            black = np.zeros((35, orig.shape[1], 3), np.uint8)
-            black[:] = (0, 0, 0)
-
-            # concatenate vertically to the image
-            orig = cv2.vconcat((black, orig))
-            heatmap = cv2.vconcat((black, heatmap))
-            output = cv2.vconcat((black, output))
-
-            # write some text over each image
-            cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255))
-            cv2.putText(heatmap, "Heatmap", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255))
-            cv2.putText(output, "Overlay with Heatmap", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255))
-
-            # display the original image and resulting heatmap and output image
-            complete = np.hstack([orig, heatmap, output])
-
-            cv2.imwrite(class_images_path + '/complete/complete_' + img_filename + '.png', complete)
-
-            # store heatmaps
-            cv2.imwrite(class_images_path + f'/heatmap/heatmap{correctness if "WRONG" in correctness else ""}_' +
-                        img_filename + '.png', heatmap_origin_size)
-
-            # clean and store heatmaps
-            cleaned_heatmap = clean_heatmap(heatmap_origin_size, 150)
-            cv2.imwrite(class_images_path + f'/highlights_heatmap/heatmap{correctness if "WRONG" in correctness else ""}_'
-                        + img_filename + '.png', cleaned_heatmap)
+            cleaned_heatmap = resize_and_store_heatmaps(heatmap, orig, label, class_images_path,
+                                                        img_filename, correctness)
 
             if cati:
                 # lock, heatmap, filename, cati, results_path, smali_data
@@ -250,3 +223,46 @@ def apply_gradcam(arguments, model, class_info, cati=True):
             with open(class_images_path + "/SMALI_CLASS.txt", "w") as to_analyse:
                 for i in range(20):
                     to_analyse.write(f"{smali_code_list[i][1]} {smali_code_list[i][0]} {smali_code_list[i][2]}\n")
+
+def resize_and_store_heatmaps(heatmap, orig, label, class_images_path, img_filename, correctness):
+    # resize heatmap to size of origin file and copy to stored later
+    # at this point the heatmap contains integer value scaled [0, 255]
+    heatmap_origin_size = cv2.resize(heatmap.copy(), (orig.shape[1], orig.shape[0]))
+
+    # resize the heatmap to the original input image dimensions and overlay heatmap on top of the image
+    (heatmap, output) = overlay_heatmap(cv2.resize(heatmap, (orig.shape[1], orig.shape[0])), orig, alpha=0.5)
+
+    # resize images
+    orig = imutils.resize(orig, width=400)
+    heatmap = imutils.resize(heatmap, width=400)
+    output = imutils.resize(output, width=400)
+
+    # create a black background to include text
+    black = np.zeros((35, orig.shape[1], 3), np.uint8)
+    black[:] = (0, 0, 0)
+
+    # concatenate vertically to the image
+    orig = cv2.vconcat((black, orig))
+    heatmap = cv2.vconcat((black, heatmap))
+    output = cv2.vconcat((black, output))
+
+    # write some text over each image
+    cv2.putText(orig, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255))
+    cv2.putText(heatmap, "Heatmap", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255))
+    cv2.putText(output, "Overlay with Heatmap", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255))
+
+    # display the original image and resulting heatmap and output image
+    complete = np.hstack([orig, heatmap, output])
+
+    cv2.imwrite(class_images_path + '/complete/complete_' + img_filename + '.png', complete)
+
+    # store heatmaps
+    cv2.imwrite(class_images_path + f'/heatmap/heatmap{correctness if "WRONG" in correctness else ""}_' +
+                img_filename + '.png', heatmap_origin_size)
+
+    # clean and store heatmaps
+    cleaned_heatmap = clean_heatmap(heatmap_origin_size, 150)
+    cv2.imwrite(class_images_path + f'/highlights_heatmap/heatmap{correctness if "WRONG" in correctness else ""}_'
+                + img_filename + '.png', cleaned_heatmap)
+
+    return cleaned_heatmap

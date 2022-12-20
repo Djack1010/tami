@@ -28,15 +28,13 @@ def parse_args():
                        help="Select gradcam target layer with at least shapeXshape (for comparing different models)")
     group.add_argument('-sf', '--ssim_folders', required=False, nargs='*', default=None,
                        help="List of gradcam results folder to compare with IF-SSIM and IM-SSIM")
-    group.add_argument('--mode', required=False, type=str, default='gradcam-standard', choices=['IFIM-SSIM',
-                                                                                            'gradcam-standard',
-                                                                                            'gradcam-test',
-                                                                                            'gradcam-cati'],
-                       help="Choose which mode run between 'gradcam-only' (default), 'gradcam-cati', 'IFIM-SSIM'"
-                            "The 'gradcam-[cati|only]' will run the gradcam analysis on "
-                            "the model provided. 'gradcam-only' will generate the heatmaps only, while 'gradcam-cati "
-                            "will also run the cati tool to reverse process and select the code from the heatmap to "
-                            "the decompiled smali (if provided, see cati README)")
+    group.add_argument('--mode', required=False, type=str, default='cam-gradcam_st1',
+                       choices=['IFIM-SSIM', 'cam-gradcam_st1', 'cam-gradcam_st2', 'cam-gradcam++', 'cam-scorecam',
+                                'cam-scorecam_fast', 'cam-gradcam_st2-guided', 'cam-gradcam++-guided',
+                                'cam-scorecam-guided', 'cam-scorecam_fast-guided',
+                                'gradcam-cati'],
+                       help="Choose which mode run between 'cam-*' (many option available, cam-gradcam-st1 default), "
+                            "'gradcam-cati', and 'IFIM-SSIM'. See all options available with --help.")
     group.add_argument('-v', '--version', action='version', version=f'{parser.prog} version {config.__version__}')
     # FLAGS
     group.add_argument('--include_all', dest='include_all', action='store_true',
@@ -121,8 +119,13 @@ if __name__ == '__main__':
     # Initialize variables and logs
     modes.initialization_postprocessing(args, class_info)
 
-    if 'gradcam-' in args.mode:
+    if 'cam-' in args.mode:
         # LOADING MODEL
+
+        # Need to disable eager execution for some gradcams due to compatibility (old code written for TF1.0)
+        if args.mode in ['cam-gradcam++'] or '-guided' in args.mode:
+            tf.compat.v1.disable_eager_execution()
+
         model = modes.load_model(args, required_img=None, required_chan=None,
                                  required_numClasses=class_info['n_classes'])
 
