@@ -39,7 +39,7 @@ def parse_args():
                        help='Run Keras Tuner for tuning hyperparameters, options: [hyperband, random, bayesian]')
     group.add_argument('-e', '--epochs', required=False, type=int, default=10,
                        help='number of epochs')
-    group.add_argument('-b', '--batch_size', required=False, type=int, default=32)
+    group.add_argument('-b', '--batch_size', required=False, type=int, default=16)
     group.add_argument('-i', '--image_size', required=False, type=str, default="100x1",
                        help='FORMAT ACCEPTED = SxC , the Size (SIZExSIZE) and channel of the images in input '
                             '(reshape will be applied)')
