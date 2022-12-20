@@ -20,7 +20,7 @@ done
 if (($QUANTUM)); then
    URLTAMI="https://martellone.iit.cnr.it/index.php/s/bGf9ZbE6LXNMTRD/download/tami_exp_quantumV1.5.1.tar"
 else
-   URLTAMI="https://martellone.iit.cnr.it/index.php/s/aBqFF75iP4f28QY/download/tami_expV1.5.1.tar"
+   URLTAMI="https://martellone.iit.cnr.it/index.php/s/EZq9YJdqP8y7xZf/download/tami_expV1.6.tar"
 fi
 
 # Use the following command to keep the repository and tag name in the saved file
