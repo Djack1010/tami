@@ -364,7 +364,7 @@ def save_model(arguments, model):
               print_on_screen=True)
 
 
-def load_model(arguments, required_img, required_chan, required_numClasses):
+def load_model(arguments, required_numClasses, required_img=None, required_chan=None):
     """
     The required_img_chan args is (None,None) when the model is loaded with no specific request on the img size. That is
     the case of the apply_gradcam, when we want just to test the model, while in train_test.py we could also specify an

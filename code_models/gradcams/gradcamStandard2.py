@@ -1,12 +1,13 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras import backend as K
 import tensorflow as tf
 import numpy as np
 import cv2
+from code_models.gradcams.gradcam_utils import build_guided_model, GuidedBackPropagation
+import utils.handle_modes as modes
 
 
 class GradCAM:
-    def __init__(self, model, target_layer_name=None, target_layer_min_shape=1):
+    def __init__(self, model, args, class_info, target_layer_name=None, target_layer_min_shape=1):
         """
         Store the model, the class index used to measure the class activation map,
         and the target layer to be used when visualizing the class activation map.
@@ -15,21 +16,12 @@ class GradCAM:
         to compare different model on same heatmap resolution
         """
 
-        config = model.layers[-1].get_config()
-        if config['activation'] == 'softmax':
-            # store weights
-            weights = [x.numpy() for x in model.layers[-1].weights]
-
-            config['activation'] = tf.keras.activations.linear
-            config['name'] = 'new_layer'
-
-            new_layer = tf.keras.layers.Dense(**config)(model.layers[-2].output)
-            new_model = tf.keras.models.Model(inputs=[model.input], outputs=[new_layer])
-            new_model.layers[-1].set_weights(weights)
-
-            self.model = new_model
+        if '-guided' in args.mode:
+            self.model = build_guided_model(modes.load_model, args, class_info)
+            self.guided = True
         else:
             self.model = model
+            self.guided = False
 
         # if the layer name is None, attempt to automatically find
         # the target output layer
@@ -49,6 +41,11 @@ class GradCAM:
             self.target_layer_name = target_layer_name
 
     def compute_heatmap(self, image, **kwargs):
+        if self.guided:
+            return self.compute_guidedSaliency(image)
+        else:
+            return self._compute_heatmap(image, **kwargs)
+    def _compute_heatmap(self, image, **kwargs):
 
         class_index = kwargs.get('class_index', None)
         eps = kwargs.get('eps', 1e-8)
@@ -93,3 +90,6 @@ class GradCAM:
         heatmap = (heatmap * 255).astype("uint8")
 
         return heatmap
+
+    def compute_guidedSaliency(self, image):
+        return GuidedBackPropagation(self.model, image, self.target_layer_name)
