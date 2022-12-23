@@ -40,13 +40,13 @@ def get_info_dataset(dataset_path, update=False):
 
         # Create dataset filepaths
         train_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/training/train")
-                       for file in f if ".png" in file or ".jpg" in file]
+                       for file in f if ".png" in file or ".jpg" in file or ".jpeg" in file]
         val_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/training/val")
-                     for file in f if ".png" in file or ".jpg" in file]
+                     for file in f if ".png" in file or ".jpg" in file or ".jpeg" in file]
         final_training_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/training")
-                                for file in f if ".png" in file or ".jpg" in file]
+                                for file in f if ".png" in file or ".jpg" in file or ".jpeg" in file]
         test_paths = [os.path.join(r, file) for r, d, f in os.walk(dataset_path + "/test")
-                      for file in f if ".png" in file or ".jpg" in file]
+                      for file in f if ".png" in file or ".jpg" in file or ".jpeg" in file]
 
         ds_info = {'ds_type': 'images', 'train_paths': train_paths, 'val_paths': val_paths, 'test_paths': test_paths,
                    'final_training_paths': final_training_paths}
