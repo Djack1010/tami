@@ -1,0 +1,7 @@
+[Core]
+Name = NopsBombing
+Module = nops_bombing
+
+[Documentation]
+Description = Adds some NOP opcodes where is possible
+Version = 1.0

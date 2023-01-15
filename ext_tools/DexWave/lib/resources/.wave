@@ -1,0 +1,4 @@
+# SMALI_PATH=path_to_jar
+# BAKSMALI_PATH=path_to_jar
+CLASSIFICATOR_WEIGHTS_PATH=/home/azraelsec/weights_smali/weights_result
+CLASSIFICATOR_LABELS=Airpush_variety1,Dowgin_variety1,FakeInst_variety3,Fusob_variety2,Mecor_variety1,trusted

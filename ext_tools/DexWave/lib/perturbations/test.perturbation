@@ -1,0 +1,7 @@
+[Core]
+Name = Test
+Module = test
+
+[Documentation]
+Description = A simple test perturbation
+Version = 1.0

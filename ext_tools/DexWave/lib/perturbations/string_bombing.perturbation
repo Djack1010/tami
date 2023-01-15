@@ -1,0 +1,7 @@
+[Core]
+Name = StringBombing
+Module = string_bombing
+
+[Documentation]
+Description = Adds randomic strings everywhere it is possible
+Version = 1.0
