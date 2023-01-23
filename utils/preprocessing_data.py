@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pickle
 import pathlib
+import zipfile
 from random import shuffle, choice
 from utils import config
 import shutil
@@ -81,7 +82,7 @@ def get_info_dataset(dataset_path, update=False):
     return class_info, ds_info
 
 
-def split_dataset(dataset_path, percentages):
+def split_dataset(dataset_path, percentages, in_file='generic'):
     # os.walk is a generator and calling next will get the first result in the form of a 3-tuple
     # (dirpath, dirnames, filenames).
     dataset = {}
@@ -129,8 +130,25 @@ def split_dataset(dataset_path, percentages):
         os.makedirs(f"{config.main_path}/DATASETS/{dataset_name}/test/{oc}", exist_ok=True)
         for set in ['train', 'val', 'test']:
             for x in dataset[oc][set]:
-                shutil.copy(f"{dataset_path}/{oc}/{x}",
-                            f"{config.main_path}/DATASETS/{dataset_name}/"
-                            f"{'' if set == 'test' else 'training/'}{set}/{oc}/{x}")
+                if in_file == 'apk':
+                    if not f"{dataset_path}/{oc}/{x}".endswith('.apk'):
+                        print_log(f"ERROR! Input dataset do not contain .apk files! ({dataset_path}/{oc}/{x}) Exiting...",
+                            print_on_screen=True)
+                        exit()
+
+                    with zipfile.ZipFile(f"{dataset_path}/{oc}/{x}", "r") as zip_ref:
+                        zip_ref.extract(member='classes.dex', path=f"{dataset_path}/{oc}/{x[:-4]}")
+
+                    os.rename(f"{dataset_path}/{oc}/{x[:-4]}/classes.dex", f"{dataset_path}/{oc}/{x[:-4]}.dex")
+                    os.removedirs(f"{dataset_path}/{oc}/{x[:-4]}")
+
+                    shutil.move(f"{dataset_path}/{oc}/{x[:-4]}.dex",
+                                f"{config.main_path}/DATASETS/{dataset_name}/"
+                                f"{'' if set == 'test' else 'training/'}{set}/{oc}/{x[:-4]}.dex")
+
+                else:
+                    shutil.copy(f"{dataset_path}/{oc}/{x}",
+                                f"{config.main_path}/DATASETS/{dataset_name}/"
+                                f"{'' if set == 'test' else 'training/'}{set}/{oc}/{x}")
 
     print_log(f"Dataset created in '{config.main_path}DATASETS/{dataset_name}'", print_on_screen=True)

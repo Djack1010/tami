@@ -22,6 +22,10 @@ def parse_args():
                        help="Choose which mode run between 'rgb-gray' (default), 'rgb', 'gray', and 'ds'."
                             "The 'rgb-gray' will convert the dataset in both grayscale and rgb colours, while the "
                             "other two modes ('rgb' and 'gray') only in rgb colours and grayscale, respectively.")
+    group.add_argument('--input', required=False, type=str, default='generic', choices=['generic', 'apk'],
+                       help="Custom image conversion or file split for some file format: \n"
+                            " -> generic: default, convert/handle the plain file\n"
+                            " -> apk: extract and convert/handle only the .dex file\n")
     group.add_argument('-p', '--percentage', required=False, type=str, default='80-10-10',
                        help='Percentage for training, validation, and test set when --mode=ds. '
                             'FORMAT ACCEPTED = X-Y-Z , which represent the training (X), validation (Y) and test (Z) '
@@ -82,9 +86,9 @@ if __name__ == '__main__':
               f"\n----------------")
 
     if args.mode in ['rgb-gray', 'rgb', 'gray']:
-        binary2image(args.dataset, width=None, thread_number=5, mode=args.mode)
+        binary2image(args.dataset, width=None, thread_number=5, mode=args.mode, in_file=args.input)
     elif args.mode == 'ds':
-        split_dataset(args.dataset, args.dataset_percentages)
+        split_dataset(args.dataset, args.dataset_percentages, in_file=args.input)
 
     # Check if any 'ERROR!' print by the thread in the log file
     # TODO: naive approach, improve checks and errors handling

@@ -1,5 +1,6 @@
 import math
 import os
+import zipfile
 from queue import Queue
 from threading import Thread
 from utils.generic_utils import print_log
@@ -123,17 +124,33 @@ def get_size(data_length, width=None):
     return width, height
 
 
-def run(file_queue, width, mode):
+def run(file_queue, width, mode, in_file):
     while not file_queue.empty():
         filename = file_queue.get()
-        if 'gray' in mode:
-            createGreyScaleImage(filename, width)
-        if 'rgb' in mode:
-            createRGBImage(filename, width)
+
+        if in_file == 'apk':
+            with zipfile.ZipFile(filename, "r") as zip_ref:
+                zip_ref.extract(member='classes.dex', path=f"{filename[:-4]}")
+            os.rename(f"{filename[:-4]}/classes.dex", f"{filename[:-4]}.dex")
+            os.removedirs(f"{filename[:-4]}")
+
+            if 'gray' in mode:
+                createGreyScaleImage(f"{filename[:-4]}.dex", width)
+            if 'rgb' in mode:
+                createRGBImage(f"{filename[:-4]}.dex", width)
+
+            os.remove(f"{filename[:-4]}.dex")
+
+        else:
+            if 'gray' in mode:
+                createGreyScaleImage(filename, width)
+            if 'rgb' in mode:
+                createRGBImage(filename, width)
+
         file_queue.task_done()
 
 
-def binary2image(input_dir, width=None, thread_number=5, mode='rgb-gray'):
+def binary2image(input_dir, width=None, thread_number=5, mode='rgb-gray', in_file='generic'):
     # Get all executable files in input directory and add them into queue
     file_queue = Queue()
     for root, directories, files in os.walk(input_dir):
@@ -141,6 +158,12 @@ def binary2image(input_dir, width=None, thread_number=5, mode='rgb-gray'):
             file_path = os.path.join(root, filename)
             # ADD to the queue only files in test and training set (avoid other files in the dataset tree folder)
             if f'/test/' in file_path or '/training/train/' in file_path or '/training/val/' in file_path:
+                # if 'in_file' NOT 'generic', check if file match the input format
+                if in_file == 'apk':
+                    if not file_path.endswith('.apk'):
+                        print_log(f"ERROR! Input dataset do not contain .apk files! ({file_path}) Exiting...",
+                            print_on_screen=True)
+                        exit()
                 file_queue.put(file_path)
 
     if file_queue.qsize() == 0:
@@ -150,7 +173,7 @@ def binary2image(input_dir, width=None, thread_number=5, mode='rgb-gray'):
 
     # Start thread
     for index in range(thread_number):
-        thread = Thread(target=run, args=[file_queue, width, mode])
+        thread = Thread(target=run, args=[file_queue, width, mode, in_file])
         thread.daemon = True
         thread.start()
     file_queue.join()
