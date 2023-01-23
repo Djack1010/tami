@@ -11,6 +11,7 @@ from utils.generic_utils import print_log
 import utils.handle_modes as modes
 from utils.preprocessing_data import get_info_dataset
 from utils.gradcam_back_code import apply_gradcam
+from ext_tools.DexWave.lib.dexwave import DexWave
 
 
 def parse_args():
@@ -28,9 +29,11 @@ def parse_args():
                        help="Select gradcam target layer with at least shapeXshape (for comparing different models)")
     group.add_argument('-sf', '--ssim_folders', required=False, nargs='*', default=None,
                        help="List of gradcam results folder to compare with IF-SSIM and IM-SSIM")
+    group.add_argument('-tg', '--target_class', required=False, type=str, default=None,
+                       help="Target class for attack model with DexWave and try to produce missclassifications")
     group.add_argument('--mode', required=False, type=str, default='cam-gradcam_st1',
-                       choices=['IFIM-SSIM', 'cam-gradcam_st1', 'cam-gradcam_st2', 'cam-gradcam++', 'cam-scorecam',
-                                'cam-scorecam_fast', 'cam-gradcam_st2-guided', 'cam-gradcam++-guided',
+                       choices=['IFIM-SSIM', 'DexWave', 'cam-gradcam_st1', 'cam-gradcam_st2', 'cam-gradcam++',
+                                'cam-scorecam', 'cam-scorecam_fast', 'cam-gradcam_st2-guided', 'cam-gradcam++-guided',
                                 'cam-scorecam-guided', 'cam-scorecam_fast-guided',
                                 'gradcam-cati'],
                        help="Choose which mode run between 'cam-*' (many option available, cam-gradcam-st1 default), "
@@ -64,16 +67,6 @@ def _check_args(arguments):
             print("ERROR! You need to specify a dataset with '-d DATASET_PATH' for the gradcam analysis. "
                   "The test set will be used to generate the heatmaps. Exiting...")
             exit()
-        if not os.path.isdir(config.main_path + arguments.dataset):
-            print('Cannot find dataset in {}, exiting...'.format(config.main_path + arguments.dataset))
-            exit()
-        # Check Dataset struct: should be in folder tree training/[train|val] e test
-        if not os.path.isdir(config.main_path + arguments.dataset + "/test") or \
-                not os.path.isdir(config.main_path + arguments.dataset + "/training/val") or \
-                not os.path.isdir(config.main_path + arguments.dataset + "/training/train"):
-            print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
-                arguments.dataset))
-            exit()
     if "IFIM-SSIM" == arguments.mode and arguments.ssim_folders is None:
         print("ERROR! You need to specify which folders in 'results/images' should be compared with the IF-SSIM and "
               "the IM-SSIM. You need to provide a list of folder with the input '-sf FOLDER1 FOLDER2 ... FOLDERN'."
@@ -82,6 +75,20 @@ def _check_args(arguments):
                                                                          recursive=True)]
         print(f"AVAILABLE FOLDERS: {' '.join(str(x) for x in available_folders)}")
         exit()
+    if "DexWave" == arguments.mode:
+        if arguments.load_model is None:
+            print("ERROR! You need to load a model with '-l MODEL_NAME', exiting...")
+            exit()
+        if arguments.dataset is None:
+            print("ERROR! You need to specify a .dex dataset with '-d DATASET_PATH'. Exiting...")
+            exit()
+        else: # check if the dataset contain only .dex files
+            for _, _, filenames in os.walk(arguments.dataset):
+                if len(filenames) > 0:
+                    for x in filenames:
+                        if not x.endswith(".dex") and x != "info.txt":
+                            print(f"ERROR! The dataset must contain only .dex file (but found {x}). Exiting...")
+                            exit()
 
 
 if __name__ == '__main__':
@@ -133,6 +140,18 @@ if __name__ == '__main__':
 
     elif args.mode == 'IFIM-SSIM':
         IFIM_SSIM(args)
+
+    elif args.mode == 'DexWave':
+        model = modes.load_model(args, required_img=None, required_chan=None,
+                                 required_numClasses=class_info['n_classes'])
+
+        dexWave = DexWave()
+
+        os.makedirs(f"{config.main_path}/results/dexwaved/{config.timeExec}")
+        dexWave.attack_model(f"{config.main_path}{args.dataset}/test",
+                             f"{config.main_path}results/dexwaved/{config.timeExec}",
+                             model, class_info, target_class=args.target_class)
+
 
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
