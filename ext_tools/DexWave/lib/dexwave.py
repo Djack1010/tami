@@ -2,12 +2,12 @@
 import os
 import colorlog
 import logging
-from numpy import array_equal
-from lib.obfuscation import Obfuscation
-from lib.mirror import Mirror
-from lib.classificator.MalwareClassificator import MalwareClassificator
-from lib.perturbations_manager import PerturbationsManager
-from lib.perturbation_interface import IPerturbation
+import numpy as np
+from ext_tools.DexWave.lib.obfuscation import Obfuscation
+from ext_tools.DexWave.lib.mirror import Mirror
+from ext_tools.DexWave.lib.classificator.MalwareClassificator import MalwareClassificator
+from ext_tools.DexWave.lib.perturbations_manager import PerturbationsManager
+from ext_tools.DexWave.lib.perturbation_interface import IPerturbation
 
 class DexWave:
   '''

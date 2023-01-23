@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from lib.dexwave import DexWave
+from ext_tools.DexWave.lib.dexwave import DexWave
 from argparse import ArgumentParser
 from dotenv import load_dotenv
 import os

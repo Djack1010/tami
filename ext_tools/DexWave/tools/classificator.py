@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from sys import argv
 import logging
-from lib.classificator.Model import MCModel
-from lib.classificator.MalwareClassificator import MalwareClassificator
+from ext_tools.DexWave.lib.classificator.Model import MCModel
+from ext_tools.DexWave.lib.classificator.MalwareClassificator import MalwareClassificator
 
 def help(name):
     logging.error("usage: {} <image_path> [<model_weights>]".format(name))

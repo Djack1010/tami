@@ -2,7 +2,7 @@
 import os
 import logging
 from yapsy.PluginManager import PluginManager
-from lib.perturbation_interface import IPerturbation
+from ext_tools.DexWave.lib.perturbation_interface import IPerturbation
 
 class PerturbationsManager:
   def __init__(self, perturbations_path):

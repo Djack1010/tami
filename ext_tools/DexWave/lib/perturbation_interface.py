@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from abc import ABC, abstractclassmethod
 from yapsy.IPlugin import IPlugin
-from lib.obfuscation import Obfuscation
+from ext_tools.DexWave.lib.obfuscation import Obfuscation
 import logging
 
 class IPerturbation(ABC, IPlugin):
