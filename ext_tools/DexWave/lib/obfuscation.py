@@ -10,8 +10,8 @@ class Obfuscation:
   def __init__(self, input_dex_path, output_dex_path):
     self.input_dex_path = input_dex_path
     
-    self.output_dex_dir = os.path.dirname(output_dex_path)
-    tmp_dex_name = (os.path.basename(output_dex_path) or 'DexWaved.dex')
+    self.output_dex_dir = output_dex_path
+    tmp_dex_name = (os.path.basename(input_dex_path) or 'DexWaved.dex')
     self.output_dex_name = tmp_dex_name if tmp_dex_name.endswith('.dex') else '{}.dex'.format(tmp_dex_name)
     self.output_dex_path = os.path.join(self.output_dex_dir, self.output_dex_name)
     
