@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from perturbation_interface import IPerturbation
-from obfuscation import Obfuscation
+from ext_tools.DexWave.lib.perturbation_interface import IPerturbation
+from ext_tools.DexWave.lib.obfuscation import Obfuscation
 from fileinput import FileInput
 from secrets import choice
 import re
