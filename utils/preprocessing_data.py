@@ -28,7 +28,7 @@ def get_info_dataset(dataset_path, update=False):
             if not os.path.exists(choice(ds_info['train_paths'])) or not os.path.exists(choice(ds_info['val_paths'])) \
                     or not os.path.exists(choice(ds_info['test_paths'])):
                 print(f"Dataset paths seem incorrect, "
-                      f"you should update the dataset info running 'python train_test.py -m DATA -d {dataset_path}")
+                      f"you should update the dataset info running 'python train_test.py -m DATA -d {dataset_path}'")
                 exit()
             # Shuffle elements
             else:

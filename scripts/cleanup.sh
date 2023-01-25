@@ -14,10 +14,14 @@ elif [ "$1" == "--models" ]; then
 elif [ "$1" == "--tuning" ]; then
   rm -rf ${SCRIPTPATH}/tuning/*
   echo "Cleaning /tuning folder"
+elif [ "$1" == "--dexwave" ]; then
+  rm -rf ${SCRIPTPATH}/results/dexwaved/*
+  echo "Cleaning /results/dexwaved folder"
 elif [ "$1" == "--complete" ]; then
   ${SCRIPTPATH}/scripts/cleanup.sh --logs --ignore
   ${SCRIPTPATH}/scripts/cleanup.sh --models --ignore
   ${SCRIPTPATH}/scripts/cleanup.sh --tuning --ignore
+  ${SCRIPTPATH}/scripts/cleanup.sh --dexwave --ignore
 fi
 
 if [ "$2" != "--ignore" ]; then
@@ -27,5 +31,5 @@ if [ "$2" != "--ignore" ]; then
   rm -f ${SCRIPTPATH}/temp/fin_tr.*
   rm -f ${SCRIPTPATH}/temp/*.data
   echo "Cleaning /temp folder"
-  echo "USAGE: $0 --[logs|models|tuning|complete]"
+  echo "USAGE: $0 --[logs|models|tuning|dexwave|complete]"
 fi
