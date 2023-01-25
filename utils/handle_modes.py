@@ -371,6 +371,7 @@ def load_model(arguments, required_numClasses, required_img=None, required_chan=
     --image_size arguments and then check if the loaded model fits this requirements
     """
     print("LOADING MODEL")
+    model_path = ""
     if 'model' in arguments:
         model_path = f"{config.main_path}saved_models/{arguments.load_model}_m{arguments.model}"
     else:  # IF model not provide, trying to look for model to load with load_model variable into saved_models folder
