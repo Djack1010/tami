@@ -59,7 +59,7 @@ def _check_args(arguments):
             print("Dataset '{}' should contain folders 'test, training/train and training/val'...".format(
                 arguments.dataset))
             exit()
-    if "gradcam-" in arguments.mode:
+    if "cam" in arguments.mode:
         if arguments.load_model is None:
             print("ERROR! You need to load a model with '-l MODEL_NAME' for the gradcam analysis, exiting...")
             exit()
