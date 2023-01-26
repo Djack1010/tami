@@ -136,8 +136,12 @@ def split_dataset(dataset_path, percentages, in_file='generic'):
                             print_on_screen=True)
                         exit()
 
-                    with zipfile.ZipFile(f"{dataset_path}/{oc}/{x}", "r") as zip_ref:
-                        zip_ref.extract(member='classes.dex', path=f"{dataset_path}/{oc}/{x[:-4]}")
+                    try:
+                        with zipfile.ZipFile(f"{dataset_path}/{oc}/{x}", "r") as zip_ref:
+                            zip_ref.extract(member='classes.dex', path=f"{dataset_path}/{oc}/{x[:-4]}")
+                    except KeyError as e:
+                        print_log(f"ERROR! File {x} does not contain 'classes.dex', skipping...", print_on_screen=True)
+                        continue
 
                     os.rename(f"{dataset_path}/{oc}/{x[:-4]}/classes.dex", f"{dataset_path}/{oc}/{x[:-4]}.dex")
                     os.removedirs(f"{dataset_path}/{oc}/{x[:-4]}")
