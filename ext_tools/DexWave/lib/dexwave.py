@@ -80,6 +80,14 @@ class DexWave:
 
           for perturbation in loaded_perturbations:
             if not success:
+
+              # IF obfuscation.smali_files == [] there are not files to obfuscate (error in decompilation)
+              #  skipping this sample by breaking the for loop
+              if len(obfuscation.smali_files) == 0:
+                self.logger.error('DECOMPILATION ERROR: NO smali file to obfuscate, skipping this sample...')
+                print_log('DECOMPILATION ERROR: NO smali file to obfuscate, skipping this sample...')
+                break
+
               perturbation.plugin_object.perturbate(obfuscation)
 
               obfuscation.produce_dex()
