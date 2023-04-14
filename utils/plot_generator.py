@@ -9,12 +9,14 @@ log_folder = os.path.join(results_folder, 'exec_logs')
 
 def build_plot(file_name, first_metric_list, second_metric_list, metric_name):
 
+    plt.rcParams["figure.autolayout"] = True
+
     file_name = file_name.replace('.results', '')
     plot_name = os.path.join(plot_folder, f'{metric_name}_{file_name}')
 
     # plot creation
-
-    epochs = range(1, len(first_metric_list) + 1)
+    num_epochs = len(first_metric_list) + 1
+    epochs = range(1, num_epochs)
 
     fig, ax = plt.subplots()
 
@@ -36,15 +38,38 @@ def build_plot(file_name, first_metric_list, second_metric_list, metric_name):
     ax.patch.set_edgecolor('black')
     ax.grid(True, color='white')
 
+    if num_epochs >= 20:
+
+        plt.rcParams["figure.figsize"] = [(num_epochs/3.22), 5.50]
+
+    else:
+
+        plt.rcParams["figure.figsize"] = [8.50, 5.50]
+
     plt.draw()
-    fig.savefig(plot_name, bbox_inches='tight')
+
+    fig.savefig(plot_name, dpi=180)
 
     print(f"{metric_name}'s plot created and stored at following path: {plot_folder}.")
 
 def generate_plot(choice, result_file):
 
     file_name = result_file
-    result_file = os.path.join(log_folder, result_file)
+
+    # check if file contains .results extension. If not add it.
+
+    if not result_file.endswith('.results'):
+        result_file = os.path.join(log_folder, result_file + '.results')
+    else:
+        result_file = os.path.join(log_folder, result_file)
+
+    # check if file is valid or not
+
+    if not os.path.isfile(result_file):
+
+        print(f'Error! {result_file} does not exists. Check the name of the file!')
+
+    # check if the plot_folder already exits, if not create it.
 
     if not os.path.exists(plot_folder):
         os.makedirs(plot_folder)
