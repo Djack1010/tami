@@ -38,12 +38,11 @@ def build_plot(file_name, first_metric_list, second_metric_list, metric_name):
     ax.patch.set_edgecolor('black')
     ax.grid(True, color='white')
 
-    if num_epochs >= 20:
-
+    if not num_epochs >= 20:
         plt.rcParams["figure.figsize"] = [(num_epochs/3.22), 5.50]
 
     else:
-
+        plt.tick_params(axis='x', which='major', labelsize=5)
         plt.rcParams["figure.figsize"] = [8.50, 5.50]
 
     plt.draw()
