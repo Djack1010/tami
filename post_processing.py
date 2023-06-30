@@ -12,6 +12,7 @@ import utils.handle_modes as modes
 from utils.preprocessing_data import get_info_dataset
 from utils.gradcam_back_code import apply_gradcam
 from ext_tools.DexWave.lib.dexwave import DexWave
+from utils.plot_generator import generate_plot
 
 
 def parse_args():
@@ -20,6 +21,7 @@ def parse_args():
     group = parser.add_argument_group('Arguments')
     # OPTIONAL Arguments
     group.add_argument('-l', '--load_model', required=False, type=str, default=None, help='Name of model to load')
+    group.add_argument('-lf', '--load_file', required=False, type=str, default=None, help='Name of result\'s file to load')
     group.add_argument('-d', '--dataset', required=False, type=str, default=None,
                        help='the dataset path, must have the folder structure: training/train, training/val and test,'
                             'in each of this folders, one folder per class (see dataset_test)')
@@ -35,9 +37,12 @@ def parse_args():
                        choices=['IFIM-SSIM', 'DexWave', 'cam-gradcam_st1', 'cam-gradcam_st2', 'cam-gradcam++',
                                 'cam-scorecam', 'cam-scorecam_fast', 'cam-gradcam_st2-guided', 'cam-gradcam++-guided',
                                 'cam-scorecam-guided', 'cam-scorecam_fast-guided',
-                                'gradcam-cati'],
+                                'gradcam-cati', 'plot-generator'],
                        help="Choose which mode run between 'cam-*' (many option available, cam-gradcam-st1 default), "
                             "'gradcam-cati', and 'IFIM-SSIM'. See all options available with --help.")
+    group.add_argument('--type', required=False, type=str, default='both', choices=['accuracy', 'loss', 'both'],
+                       help='Include all possible plots that can be created.')
+
     group.add_argument('-v', '--version', action='version', version=f'{parser.prog} version {config.__version__}')
     # FLAGS
     group.add_argument('--include_all', dest='include_all', action='store_true',
@@ -60,14 +65,14 @@ def _check_args(arguments):
                 arguments.dataset))
             exit()
     if "cam" in arguments.mode:
-        if arguments.load_model is None:
+        if arguments.load_model is None and not arguments.load_file:
             print("ERROR! You need to load a model with '-l MODEL_NAME' for the gradcam analysis, exiting...")
             exit()
-        if arguments.dataset is None:
+        if arguments.dataset is None and not arguments.load_file:
             print("ERROR! You need to specify a dataset with '-d DATASET_PATH' for the gradcam analysis. "
                   "The test set will be used to generate the heatmaps. Exiting...")
             exit()
-    if "IFIM-SSIM" == arguments.mode and arguments.ssim_folders is None:
+    if "IFIM-SSIM" == arguments.mode and arguments.ssim_folders is None and not arguments.load_file:
         print("ERROR! You need to specify which folders in 'results/images' should be compared with the IF-SSIM and "
               "the IM-SSIM. You need to provide a list of folder with the input '-sf FOLDER1 FOLDER2 ... FOLDERN'."
               " If you want to compare ALL the folders, provide input '-sf ALL'. exiting...")
@@ -152,6 +157,9 @@ if __name__ == '__main__':
                              f"{config.main_path}results/dexwaved/{config.timeExec}",
                              model, class_info, target_class=args.target_class)
 
+    elif args.mode == 'plot-generator':
+
+        generate_plot(args.type, args.load_file)
 
     print_log("ENDING EXECUTION AT\t{}".format(time.strftime("%d-%m %H:%M:%S")), print_on_screen=True)
 
